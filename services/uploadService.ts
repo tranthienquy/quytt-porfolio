@@ -1,6 +1,6 @@
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getStorage, ref, uploadBytes, getDownloadURL, FirebaseStorage } from 'firebase/storage';
+import { getStorage, ref, uploadBytes, getDownloadURL, listAll, FirebaseStorage } from 'firebase/storage';
 import { firebaseConfig } from '../firebaseConfig';
 
 // Singleton pattern for Firebase App
@@ -40,5 +40,24 @@ export const uploadFileToFirebase = async (file: File): Promise<string> => {
     } catch (error) {
         console.error("Upload failed:", error);
         throw error;
+    }
+};
+
+export const getStoredImages = async (): Promise<string[]> => {
+    if (!storage) return [];
+
+    try {
+        const listRef = ref(storage, 'portfolio_images/');
+        const res = await listAll(listRef);
+        
+        // Fetch all download URLs in parallel
+        const urlPromises = res.items.map((itemRef) => getDownloadURL(itemRef));
+        const urls = await Promise.all(urlPromises);
+        
+        // Return latest images first (simple reverse, though timestamps in name help sort logic if needed)
+        return urls.reverse();
+    } catch (error) {
+        console.error("Failed to list images:", error);
+        return [];
     }
 };

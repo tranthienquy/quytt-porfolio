@@ -1,7 +1,7 @@
 
-import React, { useState, useRef } from 'react';
-import { Plus, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, UploadCloud, Loader2 } from 'lucide-react';
-import { uploadFileToFirebase } from '../services/uploadService';
+import React, { useState, useRef, useEffect } from 'react';
+import { Plus, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, CloudUpload, Loader2, FolderOpen, X } from 'lucide-react';
+import { uploadFileToFirebase, getStoredImages } from '../services/uploadService';
 
 interface EditableTextProps {
   value: string;
@@ -50,6 +50,78 @@ export const EditableText: React.FC<EditableTextProps> = ({
   );
 };
 
+// --- IMAGE LIBRARY MODAL ---
+interface ImageLibraryModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSelect: (url: string) => void;
+}
+
+const ImageLibraryModal: React.FC<ImageLibraryModalProps> = ({ isOpen, onClose, onSelect }) => {
+    const [images, setImages] = useState<string[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            setLoading(true);
+            getStoredImages()
+                .then(urls => setImages(urls))
+                .catch(err => alert("Không tải được thư viện ảnh: " + err.message))
+                .finally(() => setLoading(false));
+        }
+    }, [isOpen]);
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-[#111] border border-white/20 w-full max-w-4xl max-h-[80vh] flex flex-col rounded-lg shadow-2xl">
+                <div className="p-4 border-b border-white/10 flex justify-between items-center bg-[#1a1a1a]">
+                    <h3 className="text-white font-heading text-lg flex items-center gap-2">
+                        <FolderOpen size={20} className="text-blue-500" /> Thư viện ảnh (Cloud)
+                    </h3>
+                    <button onClick={onClose} className="text-gray-400 hover:text-white p-1">
+                        <X size={24} />
+                    </button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center h-40 gap-3 text-gray-500">
+                            <Loader2 size={32} className="animate-spin text-blue-500" />
+                            <p>Đang tải danh sách ảnh...</p>
+                        </div>
+                    ) : images.length === 0 ? (
+                        <div className="text-center text-gray-500 py-10">Chưa có ảnh nào được lưu trên Cloud.</div>
+                    ) : (
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                            {images.map((url, idx) => (
+                                <div 
+                                    key={idx} 
+                                    onClick={() => { onSelect(url); onClose(); }}
+                                    className="aspect-square bg-black border border-white/10 cursor-pointer group hover:border-blue-500 relative overflow-hidden rounded"
+                                >
+                                    <img 
+                                        src={url} 
+                                        alt="stored" 
+                                        className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all" 
+                                        referrerPolicy="no-referrer"
+                                    />
+                                    <div className="absolute inset-0 bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className="p-3 border-t border-white/10 bg-[#1a1a1a] text-xs text-gray-500 text-center">
+                    Chọn một ảnh để sử dụng lại
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 interface EditImageProps {
   src: string;
   alt: string;
@@ -60,6 +132,7 @@ interface EditImageProps {
 
 export const EditImage: React.FC<EditImageProps> = ({ src, alt, onImageChange, isEditing, className }) => {
     const [uploading, setUploading] = useState(false);
+    const [showLibrary, setShowLibrary] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,11 +155,27 @@ export const EditImage: React.FC<EditImageProps> = ({ src, alt, onImageChange, i
         }
     };
 
-    if (!isEditing) return <img src={src} alt={alt} className={className} referrerPolicy="no-referrer" />;
+    if (!isEditing) return (
+        <img 
+            src={src} 
+            alt={alt} 
+            className={className} 
+            referrerPolicy="no-referrer"
+            onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "https://placehold.co/400x400/1a1a1a/white?text=Image+Error";
+            }}
+        />
+    );
 
     return (
         <div className={`relative group ${className}`}>
-            <img src={src} alt={alt} className="w-full h-full object-cover opacity-50 group-hover:opacity-30 transition-opacity" referrerPolicy="no-referrer" />
+            <img 
+                src={src} 
+                alt={alt} 
+                className="w-full h-full object-cover opacity-50 group-hover:opacity-30 transition-opacity" 
+                referrerPolicy="no-referrer" 
+            />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-4 gap-2">
                  {/* URL Input */}
                  <input 
@@ -97,25 +186,48 @@ export const EditImage: React.FC<EditImageProps> = ({ src, alt, onImageChange, i
                     placeholder="Image URL..."
                  />
                  
-                 {/* Cloud Upload Button */}
-                 <div className="flex gap-2">
+                 {/* Buttons Row */}
+                 <div className="flex gap-2 w-full justify-center">
+                    {/* Cloud Upload Button */}
+                    <div className="flex flex-col items-center">
+                        <button 
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={uploading}
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded transition-colors"
+                        >
+                            {uploading ? <Loader2 size={14} className="animate-spin"/> : <CloudUpload size={14} />}
+                            {uploading ? "..." : "Mới"}
+                        </button>
+                        <input 
+                            type="file" 
+                            ref={fileInputRef} 
+                            onChange={handleFileSelect} 
+                            className="hidden" 
+                            accept="image/*"
+                        />
+                    </div>
+
+                    {/* Library Button */}
                     <button 
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploading}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded transition-colors"
+                        onClick={() => setShowLibrary(true)}
+                        className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white text-xs px-3 py-1.5 rounded transition-colors"
+                        title="Chọn từ thư viện"
                     >
-                        {uploading ? <Loader2 size={14} className="animate-spin"/> : <UploadCloud size={14} />}
-                        {uploading ? "Đang tải lên..." : "Upload Ảnh"}
+                        <FolderOpen size={14} />
+                        Có sẵn
                     </button>
-                    <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        onChange={handleFileSelect} 
-                        className="hidden" 
-                        accept="image/*"
-                    />
                  </div>
             </div>
+
+            {/* Library Modal */}
+            <ImageLibraryModal 
+                isOpen={showLibrary} 
+                onClose={() => setShowLibrary(false)} 
+                onSelect={(url) => {
+                    onImageChange(url);
+                    alert("Đã chọn ảnh! Nhớ nhấn SAVE để lưu thay đổi.");
+                }} 
+            />
         </div>
     )
 }
@@ -139,7 +251,16 @@ export const EditGallery: React.FC<EditGalleryProps> = ({ images = [], onImagesC
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-1 w-full h-full">
                 {images.map((img, i) => (
                     <div key={i} className="aspect-square overflow-hidden bg-gray-900">
-                        <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
+                        <img 
+                            src={img} 
+                            alt={`Gallery ${i}`} 
+                            className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" 
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = "https://placehold.co/400x400/1a1a1a/white?text=Error";
+                            }}
+                        />
                     </div>
                 ))}
             </div>
@@ -172,6 +293,7 @@ export const EditGallery: React.FC<EditGalleryProps> = ({ images = [], onImagesC
 // Sub-component to handle individual upload state in gallery
 const GalleryItemUploader: React.FC<{ url: string, onUpdate: (url: string) => void, index: number }> = ({ url, onUpdate, index }) => {
     const [uploading, setUploading] = useState(false);
+    const [showLibrary, setShowLibrary] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -208,23 +330,43 @@ const GalleryItemUploader: React.FC<{ url: string, onUpdate: (url: string) => vo
                 placeholder="URL"
                 />
 
-                {/* Upload Button */}
-                <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="bg-blue-600/80 hover:bg-blue-500 text-white rounded-full p-1.5 transition-colors"
-                    title="Upload Image"
-                >
-                    {uploading ? <Loader2 size={12} className="animate-spin"/> : <UploadCloud size={12} />}
-                </button>
-                <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handleFileSelect} 
-                    className="hidden" 
-                    accept="image/*"
-                />
+                <div className="flex gap-1">
+                    {/* Upload Button */}
+                    <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                        className="bg-blue-600/80 hover:bg-blue-500 text-white rounded p-1 transition-colors flex-1 flex justify-center"
+                        title="Upload New"
+                    >
+                        {uploading ? <Loader2 size={12} className="animate-spin"/> : <CloudUpload size={12} />}
+                    </button>
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileSelect} 
+                        className="hidden" 
+                        accept="image/*"
+                    />
+
+                    {/* Library Button */}
+                     <button 
+                        onClick={() => setShowLibrary(true)}
+                        className="bg-gray-600/80 hover:bg-gray-500 text-white rounded p-1 transition-colors flex-1 flex justify-center"
+                        title="Select Existing"
+                    >
+                        <FolderOpen size={12} />
+                    </button>
+                </div>
             </div>
+
+             <ImageLibraryModal 
+                isOpen={showLibrary} 
+                onClose={() => setShowLibrary(false)} 
+                onSelect={(selectedUrl) => {
+                    onUpdate(selectedUrl);
+                    alert("Đã chọn ảnh từ thư viện.");
+                }} 
+            />
         </div>
     )
 }
