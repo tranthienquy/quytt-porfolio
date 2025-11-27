@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload } from 'lucide-react';
-import { ProfileData, PortfolioItem, HighlightItem } from './types';
+import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit } from 'lucide-react';
+import { ProfileData, PortfolioItem, HighlightItem, NavItem } from './types';
 import { getData, saveData, resetData } from './services/dataService';
 import { EditableText, EditImage, EditGallery, AddButton, DeleteButton, MoveButton } from './components/EditControls';
 import { firebaseConfig } from './firebaseConfig';
@@ -45,6 +45,7 @@ const App: React.FC = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [password, setPassword] = useState('');
   const [isFirebaseReady, setIsFirebaseReady] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>('');
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -55,10 +56,40 @@ const App: React.FC = () => {
     }
   }, []);
 
+  // Scroll Spy Logic
+  useEffect(() => {
+    const handleScroll = () => {
+        if (!data) return;
+        const sections = data.config.navItems.map(item => item.targetId);
+        
+        let current = '';
+        for (const section of sections) {
+            const element = document.getElementById(section);
+            if (element) {
+                const rect = element.getBoundingClientRect();
+                // Check if element is in view (approx 1/3 of screen height)
+                if (rect.top <= window.innerHeight / 3) {
+                    current = section;
+                }
+            }
+        }
+        setActiveSection(current);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Initial check
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [data]);
+
   const handleSave = () => {
     if (data) {
-      saveData(data);
-      alert('Website saved successfully!');
+      try {
+        saveData(data);
+        alert('Upload successful');
+      } catch (error) {
+        console.error("Save error:", error);
+        alert('Upload failed');
+      }
     }
   };
 
@@ -124,6 +155,13 @@ const App: React.FC = () => {
         config: { ...data.config, [field]: value } 
     });
   };
+
+  const updateNavItem = (index: number, field: keyof NavItem, value: string) => {
+      if (!data) return;
+      const newNav = [...data.config.navItems];
+      newNav[index] = { ...newNav[index], [field]: value };
+      updateConfig('navItems', newNav);
+  }
 
   const updateSocial = (key: keyof ProfileData['social'], val: string) => {
     if (!data) return;
@@ -198,7 +236,7 @@ const App: React.FC = () => {
     if (!data) return;
     const newP = data.portfolio.filter((_, i) => i !== index);
     updateField('portfolio', newP);
-  }
+  };
 
   const movePortfolioItem = (index: number, direction: 'up' | 'down') => {
       if (!data) return;
@@ -209,7 +247,7 @@ const App: React.FC = () => {
           [newP[index], newP[index + 1]] = [newP[index + 1], newP[index]];
       }
       updateField('portfolio', newP);
-  }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,6 +258,13 @@ const App: React.FC = () => {
     } else {
       alert('Wrong password!');
     }
+  };
+
+  const scrollToSection = (id: string) => {
+      const el = document.getElementById(id);
+      if (el) {
+          el.scrollIntoView({ behavior: 'smooth' });
+      }
   };
 
   if (!data) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>;
@@ -250,8 +295,10 @@ const App: React.FC = () => {
       )}
 
       {/* Top Navigation */}
-      <nav className="fixed top-0 w-full z-40 px-4 md:px-8 py-6 flex justify-between items-start bg-black text-white pointer-events-auto">
-        <div>
+      <nav className="fixed top-0 w-full z-40 px-4 md:px-8 py-6 flex flex-col md:flex-row justify-between items-center md:items-start bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none">
+        
+        {/* Left: Logo */}
+        <div className="pointer-events-auto flex flex-col items-center md:items-start mb-4 md:mb-0">
           <div className="flex flex-col gap-1 relative group/navLogo">
             {/* Logo Image or Text Logic */}
             {(data.logoImageUrl || isAdmin) && (
@@ -308,55 +355,98 @@ const App: React.FC = () => {
           </div>
         </div>
         
-        <div>
-           {!isAdmin ? (
-            <button 
-              onClick={() => setShowLogin(true)} 
-              className="text-xs font-mono opacity-30 hover:opacity-100 transition-opacity flex items-center gap-2 border border-transparent hover:border-white/20 px-3 py-1 rounded-full"
-            >
-              <Settings size={12} /> <span className="hidden sm:inline">ADMIN MODE</span>
-            </button>
-          ) : (
-             <div className="flex gap-2 bg-black/80 backdrop-blur border border-white/10 p-1.5 rounded-lg pointer-events-auto shadow-xl items-center flex-wrap justify-end">
-                {/* Firebase Status Indicator & Rules Link */}
-                {isFirebaseReady && (
-                   <a 
-                     href={`https://console.firebase.google.com/project/${firebaseConfig.projectId}/storage/rules`}
-                     target="_blank"
-                     rel="noreferrer"
-                     className="hidden md:flex items-center gap-1 px-2 py-1 text-[10px] text-green-400 border border-green-500/30 rounded bg-green-900/20 mr-2 hover:bg-green-900/40 transition-colors"
-                     title="Click to check Firebase Storage Rules"
-                   >
-                       <CheckCircle2 size={12} />
-                       <span>Cloud Ready</span>
-                   </a>
-                )}
+        {/* Right: Navigation & Admin Controls */}
+        <div className="flex flex-col md:flex-row items-center gap-4 pointer-events-auto">
+            
+            {/* PILL NAVIGATION MENU */}
+            <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full p-1.5 shadow-lg">
+                {data.config.navItems.map((item, index) => (
+                    <div key={index} className="relative group/navItem">
+                        <button
+                            onClick={() => scrollToSection(item.targetId)}
+                            className={`px-4 py-1.5 rounded-full text-xs md:text-sm font-medium transition-all duration-300 ${
+                                activeSection === item.targetId 
+                                ? 'bg-white text-black shadow-white/20 shadow-lg scale-105' 
+                                : 'text-gray-400 hover:text-white hover:bg-white/10'
+                            }`}
+                        >
+                            {isAdmin ? (
+                                <input 
+                                    value={item.label}
+                                    onChange={(e) => updateNavItem(index, 'label', e.target.value)}
+                                    className="bg-transparent text-center w-16 focus:outline-none"
+                                    onClick={(e) => e.stopPropagation()}
+                                />
+                            ) : item.label}
+                        </button>
+                        
+                        {/* Edit Link Target Popover (Admin Only) */}
+                        {isAdmin && (
+                            <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-[#222] border border-white/20 p-2 rounded shadow-xl opacity-0 group-hover/navItem:opacity-100 pointer-events-none group-hover/navItem:pointer-events-auto transition-opacity z-50 flex gap-2 items-center min-w-[150px]">
+                                <span className="text-[10px] text-gray-500 whitespace-nowrap">ID:</span>
+                                <input 
+                                    value={item.targetId}
+                                    onChange={(e) => updateNavItem(index, 'targetId', e.target.value)}
+                                    className="bg-black/50 text-xs text-blue-400 w-full p-1 rounded border border-white/10"
+                                    placeholder="Section ID"
+                                />
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
 
-                {/* Import/Export Buttons */}
-                <button onClick={handleExport} className="p-2 hover:bg-white/10 rounded text-blue-400" title="Export Backup JSON">
-                    <Download size={16} />
+            {/* Admin Controls */}
+            <div>
+            {!isAdmin ? (
+                <button 
+                onClick={() => setShowLogin(true)} 
+                className="text-xs font-mono opacity-30 hover:opacity-100 transition-opacity flex items-center gap-2 border border-transparent hover:border-white/20 px-3 py-1 rounded-full"
+                >
+                <Settings size={12} /> <span className="hidden sm:inline">ADMIN</span>
                 </button>
-                <button onClick={() => importInputRef.current?.click()} className="p-2 hover:bg-white/10 rounded text-orange-400" title="Import JSON">
-                    <Upload size={16} />
-                </button>
-                <input type="file" ref={importInputRef} onChange={handleImport} className="hidden" accept=".json" />
+            ) : (
+                <div className="flex gap-2 bg-black/80 backdrop-blur border border-white/10 p-1.5 rounded-lg shadow-xl items-center flex-wrap justify-end">
+                    {/* Firebase Status Indicator & Rules Link */}
+                    {isFirebaseReady && (
+                    <a 
+                        href={`https://console.firebase.google.com/project/${firebaseConfig.projectId}/storage/rules`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hidden md:flex items-center gap-1 px-2 py-1 text-[10px] text-green-400 border border-green-500/30 rounded bg-green-900/20 mr-2 hover:bg-green-900/40 transition-colors"
+                        title="Click to check Firebase Storage Rules"
+                    >
+                        <CheckCircle2 size={12} />
+                        <span>Cloud Ready</span>
+                    </a>
+                    )}
 
-                <div className="w-[1px] h-4 bg-white/20 mx-1"></div>
+                    {/* Import/Export Buttons */}
+                    <button onClick={handleExport} className="p-2 hover:bg-white/10 rounded text-blue-400" title="Export Backup JSON">
+                        <Download size={16} />
+                    </button>
+                    <button onClick={() => importInputRef.current?.click()} className="p-2 hover:bg-white/10 rounded text-orange-400" title="Import JSON">
+                        <Upload size={16} />
+                    </button>
+                    <input type="file" ref={importInputRef} onChange={handleImport} className="hidden" accept=".json" />
 
-                <button onClick={handleReset} className="p-2 hover:bg-white/10 rounded text-red-400" title="Reset Data"><RotateCcw size={16}/></button>
-                <button onClick={handleSave} className="p-2 hover:bg-white/10 rounded text-green-400" title="Save Changes"><Save size={16}/></button>
-                <div className="w-[1px] bg-white/20 mx-1"></div>
-                <button onClick={() => setIsAdmin(false)} className="p-2 hover:bg-white/10 rounded text-white" title="Exit Admin"><LogOut size={16}/></button>
-             </div>
-          )}
+                    <div className="w-[1px] h-4 bg-white/20 mx-1"></div>
+
+                    <button onClick={handleReset} className="p-2 hover:bg-white/10 rounded text-red-400" title="Reset Data"><RotateCcw size={16}/></button>
+                    <button onClick={handleSave} className="p-2 hover:bg-white/10 rounded text-green-400" title="Save Changes"><Save size={16}/></button>
+                    <div className="w-[1px] bg-white/20 mx-1"></div>
+                    <button onClick={() => setIsAdmin(false)} className="p-2 hover:bg-white/10 rounded text-white" title="Exit Admin"><LogOut size={16}/></button>
+                </div>
+            )}
+            </div>
         </div>
       </nav>
 
       {/* MAIN CONTAINER */}
-      <main className="relative z-10 pt-24 pb-24 px-4 sm:px-8 max-w-[1600px] mx-auto">
+      <main className="relative z-10 pt-32 pb-24 px-4 sm:px-8 max-w-[1600px] mx-auto">
         
         {/* HERO SECTION */}
-        <section className="min-h-[auto] md:min-h-[60vh] flex flex-col justify-start relative mb-20 md:mb-32">
+        <section id="home" className="min-h-[auto] md:min-h-[60vh] flex flex-col justify-start relative mb-20 md:mb-32 scroll-mt-32">
           
           {/* Background Decorative Type (Editable) */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[15vw] md:text-[18vw] font-black text-[#111] select-none z-0 font-sans tracking-tighter leading-none opacity-50 whitespace-nowrap text-center">
@@ -450,7 +540,7 @@ const App: React.FC = () => {
 
 
         {/* TABLE OF CONTENTS / HIGHLIGHTS */}
-        <section className="mb-20 md:mb-40 max-w-6xl mx-auto">
+        <section id="highlights" className="mb-20 md:mb-40 max-w-6xl mx-auto scroll-mt-32">
            <div className="flex items-end justify-between mb-8 md:mb-16 px-2 md:px-4">
               <h3 className="text-3xl md:text-6xl font-heading relative z-10 flex flex-col">
                  <span className="font-sans font-black text-transparent stroke-white text-stroke-1 block text-lg md:text-2xl opacity-30 tracking-widest mb-[-5px] md:mb-[-10px]">
@@ -532,7 +622,7 @@ const App: React.FC = () => {
         </section>
 
         {/* PORTFOLIO SECTION */}
-        <section className="mb-32">
+        <section id="work" className="mb-32 scroll-mt-32">
            <div className="max-w-[1600px] mx-auto">
               <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 px-4">
                  <div>
@@ -606,8 +696,6 @@ const App: React.FC = () => {
                                      </div>
                                  </div>
 
-                                 {/* Removed "Chia sẻ của mình" section here as requested */}
-
                                  {/* Video Button / Thumbnail */}
                                  <div className="mt-auto pt-8">
                                      <div className="relative aspect-video w-full overflow-hidden border border-white/10 group/video cursor-pointer">
@@ -663,7 +751,7 @@ const App: React.FC = () => {
         </section>
 
         {/* FOOTER / CONTACT */}
-        <section className="border-t border-white/10 pt-20">
+        <section id="contact" className="border-t border-white/10 pt-20 scroll-mt-32">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 text-sm">
                 
                 <div className="space-y-6">

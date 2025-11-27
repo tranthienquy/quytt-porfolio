@@ -17,6 +17,11 @@ export interface SocialLinks {
   tiktok: string;
 }
 
+export interface NavItem {
+  label: string;
+  targetId: string;
+}
+
 export interface SiteConfig {
   heroBackgroundText: string;
   tocTitle: string;
@@ -28,6 +33,7 @@ export interface SiteConfig {
   quoteAuthor: string;
   heroLayoutSwapped: boolean; // Control layout direction
   versionText: string; // New: Editable version text
+  navItems: NavItem[]; // New: Editable navigation items
 }
 
 export interface HighlightItem {

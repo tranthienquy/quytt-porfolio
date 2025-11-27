@@ -67,7 +67,13 @@ const DEFAULT_DATA: ProfileData = {
     quoteContent: "\"Making moments that matter.\"",
     quoteAuthor: "Trần Thiên Quý",
     heroLayoutSwapped: false,
-    versionText: "PORTFOLIO V.1.0"
+    versionText: "PORTFOLIO V.1.0",
+    navItems: [
+        { label: "Home", targetId: "home" },
+        { label: "Highlight", targetId: "highlights" },
+        { label: "My Work", targetId: "work" },
+        { label: "Contact", targetId: "contact" }
+    ]
   }
 };
 
@@ -80,12 +86,19 @@ export const getData = (): ProfileData => {
       const migratedHighlights = Array.isArray(parsed.highlights) 
         ? parsed.highlights.map((h: any) => typeof h === 'string' ? { text: h, url: '' } : h)
         : DEFAULT_DATA.highlights;
+      
+      // Helper to migrate config with missing navItems
+      const migratedConfig = { 
+          ...DEFAULT_DATA.config, 
+          ...(parsed.config || {}),
+          navItems: parsed.config?.navItems || DEFAULT_DATA.config.navItems
+      };
 
       return { 
           ...DEFAULT_DATA, 
           ...parsed,
           highlights: migratedHighlights,
-          config: { ...DEFAULT_DATA.config, ...(parsed.config || {}) }
+          config: migratedConfig
       };
     } catch (e) {
       console.error("Failed to parse stored data", e);
