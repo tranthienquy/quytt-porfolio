@@ -1,5 +1,6 @@
+
 import React, { useState, useRef } from 'react';
-import { Plus, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, CloudUpload, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, UploadCloud, Loader2 } from 'lucide-react';
 import { uploadFileToFirebase } from '../services/uploadService';
 
 interface EditableTextProps {
@@ -67,23 +68,25 @@ export const EditImage: React.FC<EditImageProps> = ({ src, alt, onImageChange, i
             try {
                 const url = await uploadFileToFirebase(e.target.files[0]);
                 onImageChange(url);
-                alert("Upload successful! Don't forget to click the Green Save Button in the toolbar.");
+                alert("Upload thành công! Đừng quên nhấn nút SAVE màu xanh lá để lưu lại.");
             } catch (error: any) {
-                const msg = error.code === 'storage/unauthorized' 
-                    ? "Permission denied. Please check Firebase Console -> Storage -> Rules. Must allow write."
-                    : error.message;
-                alert("Upload failed: " + msg);
+                console.error("Upload Error Details:", error);
+                if (error.code === 'storage/unauthorized') {
+                    alert("LỖI QUYỀN TRUY CẬP (Permission Denied):\n\nFirebase chặn upload do bạn chưa mở quyền ghi.\n\nVui lòng vào Firebase Console -> Storage -> Rules\nSửa thành: allow read, write: if true;");
+                } else {
+                    alert("Lỗi Upload: " + error.message);
+                }
             } finally {
                 setUploading(false);
             }
         }
     };
 
-    if (!isEditing) return <img src={src} alt={alt} className={className} />;
+    if (!isEditing) return <img src={src} alt={alt} className={className} referrerPolicy="no-referrer" />;
 
     return (
         <div className={`relative group ${className}`}>
-            <img src={src} alt={alt} className="w-full h-full object-cover opacity-50 group-hover:opacity-30 transition-opacity" />
+            <img src={src} alt={alt} className="w-full h-full object-cover opacity-50 group-hover:opacity-30 transition-opacity" referrerPolicy="no-referrer" />
             <div className="absolute inset-0 flex flex-col items-center justify-center p-4 gap-2">
                  {/* URL Input */}
                  <input 
@@ -101,8 +104,8 @@ export const EditImage: React.FC<EditImageProps> = ({ src, alt, onImageChange, i
                         disabled={uploading}
                         className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded transition-colors"
                     >
-                        {uploading ? <Loader2 size={14} className="animate-spin"/> : <CloudUpload size={14} />}
-                        {uploading ? "Uploading..." : "Upload File"}
+                        {uploading ? <Loader2 size={14} className="animate-spin"/> : <UploadCloud size={14} />}
+                        {uploading ? "Đang tải lên..." : "Upload Ảnh"}
                     </button>
                     <input 
                         type="file" 
@@ -136,7 +139,7 @@ export const EditGallery: React.FC<EditGalleryProps> = ({ images = [], onImagesC
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-1 w-full h-full">
                 {images.map((img, i) => (
                     <div key={i} className="aspect-square overflow-hidden bg-gray-900">
-                        <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+                        <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
                     </div>
                 ))}
             </div>
@@ -177,12 +180,14 @@ const GalleryItemUploader: React.FC<{ url: string, onUpdate: (url: string) => vo
             try {
                 const newUrl = await uploadFileToFirebase(e.target.files[0]);
                 onUpdate(newUrl);
-                alert("Upload successful! Save your changes.");
+                alert("Upload thành công! Hãy nhấn SAVE để lưu lại.");
             } catch (error: any) {
-                const msg = error.code === 'storage/unauthorized' 
-                    ? "Permission denied. Check Firebase Console -> Storage -> Rules."
-                    : error.message;
-                alert("Err: " + msg);
+                console.error("Gallery Upload Error:", error);
+                if (error.code === 'storage/unauthorized') {
+                    alert("LỖI QUYỀN TRUY CẬP (Permission Denied):\n\nFirebase chặn upload do bạn chưa mở quyền ghi.\n\nVui lòng vào Firebase Console -> Storage -> Rules\nSửa thành: allow read, write: if true;");
+                } else {
+                    alert("Lỗi Upload: " + error.message);
+                }
             } finally {
                 setUploading(false);
             }
@@ -191,7 +196,7 @@ const GalleryItemUploader: React.FC<{ url: string, onUpdate: (url: string) => vo
 
     return (
         <div className="aspect-square relative group bg-gray-900">
-            <img src={url} alt={`Gallery ${index}`} className="w-full h-full object-cover opacity-60" />
+            <img src={url} alt={`Gallery ${index}`} className="w-full h-full object-cover opacity-60" referrerPolicy="no-referrer" />
             
             <div className="absolute inset-0 flex flex-col items-center justify-center p-1 gap-1">
                 {/* Manual URL Input */}
@@ -210,7 +215,7 @@ const GalleryItemUploader: React.FC<{ url: string, onUpdate: (url: string) => vo
                     className="bg-blue-600/80 hover:bg-blue-500 text-white rounded-full p-1.5 transition-colors"
                     title="Upload Image"
                 >
-                    {uploading ? <Loader2 size={12} className="animate-spin"/> : <CloudUpload size={12} />}
+                    {uploading ? <Loader2 size={12} className="animate-spin"/> : <UploadCloud size={12} />}
                 </button>
                 <input 
                     type="file" 
