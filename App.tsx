@@ -13,6 +13,58 @@ const TikTokIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// --- GLOWING CURSOR COMPONENT ---
+const GlowingCursor = () => {
+    const cursorRef = useRef<HTMLDivElement>(null);
+    const glowRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const moveCursor = (e: MouseEvent) => {
+            const { clientX, clientY } = e;
+            
+            // Move the core cursor (instant)
+            if (cursorRef.current) {
+                cursorRef.current.style.transform = `translate3d(${clientX}px, ${clientY}px, 0) translate(-50%, -50%)`;
+            }
+            
+            // Move the glow (slightly delayed/smoothed could be added, but instant feels snappier for "light")
+            if (glowRef.current) {
+                glowRef.current.style.transform = `translate3d(${clientX}px, ${clientY}px, 0) translate(-50%, -50%)`;
+            }
+        };
+
+        window.addEventListener('mousemove', moveCursor);
+        
+        // Hide default cursor
+        document.body.style.cursor = 'none';
+
+        return () => {
+            window.removeEventListener('mousemove', moveCursor);
+            document.body.style.cursor = 'auto';
+        };
+    }, []);
+
+    return (
+        <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden">
+            {/* The Large Glow (Ambient Light) - Modified for higher brightness & smaller area */}
+            <div 
+                ref={glowRef}
+                className="absolute top-0 left-0 w-[120px] h-[120px] bg-white rounded-full opacity-50 mix-blend-screen pointer-events-none will-change-transform"
+                style={{
+                    filter: 'blur(30px)',
+                    transition: 'transform 0.1s ease-out'
+                }}
+            />
+            {/* The Core Sphere (The physical orb) - Sharper and brighter */}
+            <div 
+                ref={cursorRef}
+                className="absolute top-0 left-0 w-4 h-4 bg-white rounded-full shadow-[0_0_20px_4px_rgba(255,255,255,0.9)] mix-blend-normal pointer-events-none will-change-transform"
+            />
+        </div>
+    );
+};
+
+
 // Selection Frame Component for that "Design Tool" look
 const SelectionFrame = ({ children, className = "", label }: { children?: React.ReactNode, className?: string, label?: React.ReactNode }) => (
   <div className={`relative border border-dashed border-white/20 group ${className}`}>
@@ -272,10 +324,19 @@ const App: React.FC = () => {
       setIsAdmin(true);
       setShowLogin(false);
       setPassword('');
+      // Re-enable cursor when entering admin mode to make editing easier
+      document.body.style.cursor = 'auto';
     } else {
       alert('Wrong password!');
     }
   };
+  
+  // Toggle cursor back on log out
+  useEffect(() => {
+    if (!isAdmin) {
+        document.body.style.cursor = 'none';
+    }
+  }, [isAdmin]);
 
   const scrollToSection = (id: string) => {
       const el = document.getElementById(id);
@@ -292,11 +353,14 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#050505] text-[#EAEAEA] font-body relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#050505] text-[#EAEAEA] font-body relative overflow-x-hidden cursor-none">
       
+      {/* Show Glowing Cursor only when NOT in Admin mode (or make it optional) */}
+      {!isAdmin && <GlowingCursor />}
+
       {/* Admin Login Modal */}
       {showLogin && (
-        <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm cursor-auto">
           <div className="bg-[#111] p-8 rounded-none border border-white/20 max-w-sm w-full relative shadow-2xl">
             <button onClick={() => setShowLogin(false)} className="absolute top-4 right-4 text-gray-500 hover:text-white"><X size={20}/></button>
             <h2 className="text-xl font-body uppercase tracking-widest mb-6 text-center text-blue-500">System Access</h2>
@@ -320,7 +384,7 @@ const App: React.FC = () => {
       <nav className="fixed top-0 w-full z-40 px-4 md:px-8 py-6 flex flex-col md:flex-row justify-between items-center md:items-start bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none">
         
         {/* Left: Logo */}
-        <div className="pointer-events-auto flex flex-col items-center md:items-start mb-4 md:mb-0">
+        <div className="pointer-events-auto flex flex-col items-center md:items-start mb-4 md:mb-0 cursor-auto">
           <div className="flex flex-col gap-1 relative group/navLogo">
             {/* Logo Image or Text Logic */}
             {(data.logoImageUrl || isAdmin) && (
@@ -378,7 +442,7 @@ const App: React.FC = () => {
         </div>
         
         {/* Right: Navigation & Admin Controls */}
-        <div className="flex flex-col md:flex-row items-center gap-4 pointer-events-auto">
+        <div className="flex flex-col md:flex-row items-center gap-4 pointer-events-auto cursor-auto">
             
             {/* PILL NAVIGATION MENU */}
             <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full p-1.5 shadow-lg">
@@ -423,7 +487,7 @@ const App: React.FC = () => {
             {!isAdmin ? (
                 <button 
                 onClick={() => setShowLogin(true)} 
-                className="text-xs font-mono opacity-30 hover:opacity-100 transition-opacity flex items-center gap-2 border border-transparent hover:border-white/20 px-3 py-1 rounded-full"
+                className="text-xs font-mono opacity-30 hover:opacity-100 transition-opacity flex items-center gap-2 border border-transparent hover:border-white/20 px-3 py-1 rounded-full cursor-pointer"
                 >
                 <Settings size={12} /> <span className="hidden sm:inline">ADMIN</span>
                 </button>
@@ -476,7 +540,7 @@ const App: React.FC = () => {
       </nav>
 
       {/* MAIN CONTAINER */}
-      <main className="relative z-10 pt-32 pb-24 px-4 sm:px-8 max-w-[1600px] mx-auto">
+      <main className="relative z-10 pt-32 pb-24 px-4 sm:px-8 max-w-[1600px] mx-auto cursor-auto">
         
         {/* HERO SECTION */}
         <section id="home" className="min-h-[auto] md:min-h-[60vh] flex flex-col justify-start relative mb-20 md:mb-32 scroll-mt-32">
@@ -568,10 +632,12 @@ const App: React.FC = () => {
                             onChange={(val) => updateField('name', val)}
                             className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-heading font-thin text-white relative z-10 mix-blend-lighten leading-tight break-words"
                           />
-                          {/* Stylized Cursor */}
-                          <div className="absolute -top-4 -right-12 animate-bounce hidden md:block opacity-50">
-                              <MousePointer2 size={32} className="text-white fill-black" />
-                          </div>
+                          {/* Stylized Cursor (Hidden if interactive cursor is active) */}
+                          {isAdmin && (
+                            <div className="absolute -top-4 -right-12 animate-bounce hidden md:block opacity-50">
+                                <MousePointer2 size={32} className="text-white fill-black" />
+                            </div>
+                          )}
                        </div>
 
                        <div className="max-w-xl">
@@ -619,7 +685,7 @@ const App: React.FC = () => {
             >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                  {data.highlights.map((item, index) => (
-                    <div key={index} className="group relative p-6 md:p-8 border border-white/10 hover:border-blue-500/50 bg-[#0A0A0A] transition-all hover:-translate-y-2 h-full min-h-[200px] flex flex-col justify-between overflow-hidden">
+                    <div key={index} className="group relative p-6 md:p-8 border border-white/10 hover:border-blue-500/50 bg-[#0A0A0A] transition-all hover:-translate-y-2 h-full min-h-[200px] flex flex-col justify-between overflow-hidden cursor-none">
                        {/* Number Background */}
                        <div className="absolute -right-4 -top-6 text-[80px] md:text-[120px] font-black text-[#111] leading-none select-none group-hover:text-[#161618] transition-colors font-sans z-0">
                           {String(index + 1).padStart(2, '0')}
@@ -636,7 +702,7 @@ const App: React.FC = () => {
                           
                           {/* Hyperlink Text Logic */}
                           {item.url && !isAdmin ? (
-                              <a href={item.url} target="_blank" rel="noopener noreferrer" className="block text-base md:text-lg font-light text-gray-300 hover:text-blue-400 transition-colors z-20 relative">
+                              <a href={item.url} target="_blank" rel="noopener noreferrer" className="block text-base md:text-lg font-light text-gray-300 hover:text-blue-400 transition-colors z-20 relative cursor-pointer">
                                   {item.text}
                                   <ExternalLink size={12} className="inline ml-1 mb-1 opacity-50"/>
                               </a>
