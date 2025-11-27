@@ -77,7 +77,7 @@ const ImageLibraryModal: React.FC<ImageLibraryModalProps> = ({ isOpen, onClose, 
         <div className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="bg-[#111] border border-white/20 w-full max-w-4xl max-h-[80vh] flex flex-col rounded-lg shadow-2xl">
                 <div className="p-4 border-b border-white/10 flex justify-between items-center bg-[#1a1a1a]">
-                    <h3 className="text-white font-heading text-lg flex items-center gap-2">
+                    <h3 className="text-white font-body font-extralight text-lg flex items-center gap-2">
                         <FolderOpen size={20} className="text-blue-500" /> Thư viện ảnh (Cloud)
                     </h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-white p-1">
