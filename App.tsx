@@ -14,7 +14,7 @@ const TikTokIcon = ({ className }: { className?: string }) => (
 );
 
 // Selection Frame Component for that "Design Tool" look
-const SelectionFrame = ({ children, className = "", label = "" }: { children?: React.ReactNode, className?: string, label?: string }) => (
+const SelectionFrame = ({ children, className = "", label }: { children?: React.ReactNode, className?: string, label?: React.ReactNode }) => (
   <div className={`relative border border-dashed border-white/20 group ${className}`}>
     {/* Corners */}
     <div className="absolute -top-1 -left-1 w-2 h-2 bg-white border border-black z-10"></div>
@@ -509,7 +509,17 @@ const App: React.FC = () => {
              {/* Dynamic Order based on config */}
              {/* Column A: Avatar */}
              <div className={`lg:col-span-4 h-[300px] lg:h-auto ${data.config.heroLayoutSwapped ? 'lg:order-2' : 'lg:order-1'}`}>
-                 <SelectionFrame className="w-full h-full bg-[#0A0A0A]" label="PORTRAIT_AVATAR">
+                 <SelectionFrame 
+                    className="w-full h-full bg-[#0A0A0A]" 
+                    label={
+                        <EditableText 
+                            value={data.config.labelPortrait || "PORTRAIT_AVATAR"} 
+                            onChange={v => updateConfig('labelPortrait', v)} 
+                            isEditing={isAdmin} 
+                            tagName="span"
+                        />
+                    }
+                 >
                      <div className="w-full h-full overflow-hidden relative">
                         <EditImage 
                           src={data.avatarUrl}
@@ -526,7 +536,17 @@ const App: React.FC = () => {
 
              {/* Column B: Intro Text */}
              <div className={`lg:col-span-8 h-full ${data.config.heroLayoutSwapped ? 'lg:order-1' : 'lg:order-2'}`}>
-                 <SelectionFrame className="bg-[#050505] p-6 md:p-12 h-full flex flex-col justify-center" label="INTRODUCTION">
+                 <SelectionFrame 
+                    className="bg-[#050505] p-6 md:p-12 h-full flex flex-col justify-center" 
+                    label={
+                        <EditableText 
+                            value={data.config.labelIntro || "INTRODUCTION"} 
+                            onChange={v => updateConfig('labelIntro', v)} 
+                            isEditing={isAdmin} 
+                            tagName="span"
+                        />
+                    }
+                 >
                     <div className="flex flex-col items-start text-left w-full">
                        
                        <div className="flex items-center gap-3 mb-4 md:mb-6">
@@ -586,7 +606,17 @@ const App: React.FC = () => {
               </div>
            </div>
            
-           <SelectionFrame className="p-0 border-none" label="GRID_LAYOUT">
+           <SelectionFrame 
+                className="p-0 border-none" 
+                label={
+                    <EditableText 
+                        value={data.config.labelHighlights || "GRID_LAYOUT"} 
+                        onChange={v => updateConfig('labelHighlights', v)} 
+                        isEditing={isAdmin} 
+                        tagName="span"
+                    />
+                }
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                  {data.highlights.map((item, index) => (
                     <div key={index} className="group relative p-6 md:p-8 border border-white/10 hover:border-blue-500/50 bg-[#0A0A0A] transition-all hover:-translate-y-2 h-full min-h-[200px] flex flex-col justify-between overflow-hidden">
@@ -818,7 +848,17 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="lg:col-span-2 relative">
-                    <SelectionFrame className="h-full min-h-[200px] flex items-center justify-center bg-[#111] p-8" label="ART_DIRECTION">
+                    <SelectionFrame 
+                        className="h-full min-h-[200px] flex items-center justify-center bg-[#111] p-8" 
+                        label={
+                            <EditableText 
+                                value={data.config.labelQuote || "ART_DIRECTION"} 
+                                onChange={v => updateConfig('labelQuote', v)} 
+                                isEditing={isAdmin} 
+                                tagName="span"
+                            />
+                        }
+                    >
                          <div className="text-center">
                             <p className="font-heading text-3xl md:text-4xl mb-4 italic">
                                <EditableText value={data.config.quoteContent} onChange={v => updateConfig('quoteContent', v)} isEditing={isAdmin} tagName="span" />

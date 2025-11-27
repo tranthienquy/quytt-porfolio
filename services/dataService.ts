@@ -89,7 +89,11 @@ const DEFAULT_DATA: ProfileData = {
         { label: "Highlight", targetId: "highlights" },
         { label: "My Work", targetId: "work" },
         { label: "Contact", targetId: "contact" }
-    ]
+    ],
+    labelPortrait: "PORTRAIT_AVATAR",
+    labelIntro: "INTRODUCTION",
+    labelHighlights: "GRID_LAYOUT",
+    labelQuote: "ART_DIRECTION"
   }
 };
 

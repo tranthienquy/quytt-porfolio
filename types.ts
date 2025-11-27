@@ -34,6 +34,11 @@ export interface SiteConfig {
   heroLayoutSwapped: boolean; // Control layout direction
   versionText: string; // New: Editable version text
   navItems: NavItem[]; // New: Editable navigation items
+  // Editable Layout Labels
+  labelPortrait: string;
+  labelIntro: string;
+  labelHighlights: string;
+  labelQuote: string;
 }
 
 export interface HighlightItem {
