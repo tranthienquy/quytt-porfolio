@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2 } from 'lucide-react';
 import { ProfileData, PortfolioItem, HighlightItem, NavItem } from './types';
@@ -17,48 +16,57 @@ const TikTokIcon = ({ className }: { className?: string }) => (
 const GlowingCursor = () => {
     const cursorRef = useRef<HTMLDivElement>(null);
     const glowRef = useRef<HTMLDivElement>(null);
+    const mousePos = useRef({ x: 0, y: 0 });
+    const requestRef = useRef<number>(0);
 
     useEffect(() => {
-        const moveCursor = (e: MouseEvent) => {
-            const { clientX, clientY } = e;
-            
-            // Move the core cursor (instant)
-            if (cursorRef.current) {
-                cursorRef.current.style.transform = `translate3d(${clientX}px, ${clientY}px, 0) translate(-50%, -50%)`;
-            }
-            
-            // Move the glow (slightly delayed/smoothed could be added, but instant feels snappier for "light")
-            if (glowRef.current) {
-                glowRef.current.style.transform = `translate3d(${clientX}px, ${clientY}px, 0) translate(-50%, -50%)`;
-            }
+        const onMouseMove = (e: MouseEvent) => {
+            mousePos.current = { x: e.clientX, y: e.clientY };
         };
 
-        window.addEventListener('mousemove', moveCursor);
+        const animate = () => {
+            const { x, y } = mousePos.current;
+            // Using translate3d for hardware acceleration
+            const transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+            
+            if (cursorRef.current) {
+                cursorRef.current.style.transform = transform;
+            }
+            if (glowRef.current) {
+                glowRef.current.style.transform = transform;
+            }
+            
+            requestRef.current = requestAnimationFrame(animate);
+        };
+
+        window.addEventListener('mousemove', onMouseMove);
+        requestRef.current = requestAnimationFrame(animate);
         
         // Hide default cursor
         document.body.style.cursor = 'none';
 
         return () => {
-            window.removeEventListener('mousemove', moveCursor);
+            window.removeEventListener('mousemove', onMouseMove);
+            if (requestRef.current) cancelAnimationFrame(requestRef.current);
             document.body.style.cursor = 'auto';
         };
     }, []);
 
     return (
         <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden">
-            {/* The Large Glow (Ambient Light) - Modified for higher brightness & smaller area */}
+            {/* The Large Glow (Ambient Light) */}
             <div 
                 ref={glowRef}
                 className="absolute top-0 left-0 w-[120px] h-[120px] bg-white rounded-full opacity-50 mix-blend-screen pointer-events-none will-change-transform"
                 style={{
                     filter: 'blur(30px)',
-                    transition: 'transform 0.1s ease-out'
+                    // Removed transition here to prevent slipping
                 }}
             />
-            {/* The Core Sphere (The physical orb) - Sharper and brighter */}
+            {/* The Core Sphere (The physical orb) - Size increased to w-8 (32px) */}
             <div 
                 ref={cursorRef}
-                className="absolute top-0 left-0 w-4 h-4 bg-white rounded-full shadow-[0_0_20px_4px_rgba(255,255,255,0.9)] mix-blend-normal pointer-events-none will-change-transform"
+                className="absolute top-0 left-0 w-8 h-8 bg-white rounded-full shadow-[0_0_20px_4px_rgba(255,255,255,0.9)] mix-blend-normal pointer-events-none will-change-transform"
             />
         </div>
     );
