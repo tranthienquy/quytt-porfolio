@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Plus, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, CloudUpload, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, UploadCloud, Loader2 } from 'lucide-react';
 import { uploadFileToFirebase } from '../services/uploadService';
 
 interface EditableTextProps {
@@ -101,7 +101,7 @@ export const EditImage: React.FC<EditImageProps> = ({ src, alt, onImageChange, i
                         disabled={uploading}
                         className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded transition-colors"
                     >
-                        {uploading ? <Loader2 size={14} className="animate-spin"/> : <CloudUpload size={14} />}
+                        {uploading ? <Loader2 size={14} className="animate-spin"/> : <UploadCloud size={14} />}
                         {uploading ? "Uploading..." : "Upload File"}
                     </button>
                     <input 
@@ -209,7 +209,7 @@ const GalleryItemUploader: React.FC<{ url: string, onUpdate: (url: string) => vo
                     className="bg-blue-600/80 hover:bg-blue-500 text-white rounded-full p-1.5 transition-colors"
                     title="Upload Image"
                 >
-                    {uploading ? <Loader2 size={12} className="animate-spin"/> : <CloudUpload size={12} />}
+                    {uploading ? <Loader2 size={12} className="animate-spin"/> : <UploadCloud size={12} />}
                 </button>
                 <input 
                     type="file" 
