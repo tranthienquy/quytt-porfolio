@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit } from 'lucide-react';
+import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2 } from 'lucide-react';
 import { ProfileData, PortfolioItem, HighlightItem, NavItem } from './types';
 import { getData, saveData, resetData } from './services/dataService';
 import { EditableText, EditImage, EditGallery, AddButton, DeleteButton, MoveButton } from './components/EditControls';
@@ -46,10 +46,15 @@ const App: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isFirebaseReady, setIsFirebaseReady] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false); // New state for async save
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setData(getData());
+    // Load data asynchronously
+    getData().then(loadedData => {
+        setData(loadedData);
+    });
+    
     // Check if firebase config is present (simple check)
     if (firebaseConfig.projectId && firebaseConfig.projectId !== "PROJECT_ID") {
         setIsFirebaseReady(true);
@@ -81,14 +86,23 @@ const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [data]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (data) {
+      setIsSaving(true);
       try {
-        saveData(data);
-        alert('Upload successful');
-      } catch (error) {
+        await saveData(data);
+        alert('Upload successful! Dữ liệu đã được lưu lên Cloud.');
+      } catch (error: any) {
         console.error("Save error:", error);
-        alert('Upload failed');
+        if (error.code === 'permission-denied') {
+             alert('Upload failed: Lỗi quyền truy cập! Vui lòng tạo Firestore Database và set Rules "allow read, write: if true;"');
+        } else if (error.code === 'unimplemented') {
+             alert('Upload failed: Chưa bật Firestore Database trong Firebase Console.');
+        } else {
+             alert('Upload failed: ' + error.message);
+        }
+      } finally {
+        setIsSaving(false);
       }
     }
   };
@@ -120,15 +134,18 @@ const App: React.FC = () => {
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
           try {
               const json = JSON.parse(event.target?.result as string);
               // Basic validation check
               if (json && json.portfolio && json.config) {
                   if (window.confirm("This will overwrite your current data with the imported file. Continue?")) {
                       setData(json);
-                      saveData(json);
-                      alert("Import successful!");
+                      // Auto save to cloud after import
+                      setIsSaving(true);
+                      await saveData(json);
+                      setIsSaving(false);
+                      alert("Import successful & Saved to Cloud!");
                   }
               } else {
                   alert("Invalid file format.");
@@ -267,7 +284,12 @@ const App: React.FC = () => {
       }
   };
 
-  if (!data) return <div className="min-h-screen bg-black flex items-center justify-center text-white">Loading...</div>;
+  if (!data) return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white gap-4">
+          <Loader2 size={40} className="animate-spin text-blue-500"/>
+          <p>Loading System Data...</p>
+      </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#050505] text-[#EAEAEA] font-body relative overflow-x-hidden">
@@ -433,7 +455,18 @@ const App: React.FC = () => {
                     <div className="w-[1px] h-4 bg-white/20 mx-1"></div>
 
                     <button onClick={handleReset} className="p-2 hover:bg-white/10 rounded text-red-400" title="Reset Data"><RotateCcw size={16}/></button>
-                    <button onClick={handleSave} className="p-2 hover:bg-white/10 rounded text-green-400" title="Save Changes"><Save size={16}/></button>
+                    
+                    {/* Save Button with Loading State */}
+                    <button 
+                        onClick={handleSave} 
+                        disabled={isSaving}
+                        className={`p-2 rounded text-green-400 flex items-center gap-2 ${isSaving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'}`} 
+                        title="Save Changes"
+                    >
+                        {isSaving ? <Loader2 size={16} className="animate-spin"/> : <Save size={16}/>}
+                        {isSaving && <span className="text-[10px]">Saving...</span>}
+                    </button>
+                    
                     <div className="w-[1px] bg-white/20 mx-1"></div>
                     <button onClick={() => setIsAdmin(false)} className="p-2 hover:bg-white/10 rounded text-white" title="Exit Admin"><LogOut size={16}/></button>
                 </div>

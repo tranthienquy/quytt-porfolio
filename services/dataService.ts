@@ -1,7 +1,23 @@
 
 import { ProfileData, PortfolioItem } from '../types';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
+import { firebaseConfig } from '../firebaseConfig';
 
-const STORAGE_KEY = 'quy_portfolio_data_v3'; // Bumped version to v3 for structure changes
+const STORAGE_KEY = 'quy_portfolio_data_v3';
+const FIRESTORE_COLLECTION = 'site_content';
+const FIRESTORE_DOC_ID = 'main_portfolio';
+
+// Initialize Firebase for Firestore (Shared instance)
+let db: any = null;
+try {
+    if (firebaseConfig.projectId && firebaseConfig.projectId !== "PROJECT_ID") {
+        const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+        db = getFirestore(app);
+    }
+} catch (e) {
+    console.error("Firestore Init Error:", e);
+}
 
 const DEFAULT_DATA: ProfileData = {
   logoText: "TQ.",
@@ -77,39 +93,80 @@ const DEFAULT_DATA: ProfileData = {
   }
 };
 
-export const getData = (): ProfileData => {
+// Helper to merge default data structure with loaded data (migrations)
+const mergeData = (loaded: any): ProfileData => {
+    // Migration: highlights string[] -> HighlightItem[]
+    const migratedHighlights = Array.isArray(loaded.highlights) 
+    ? loaded.highlights.map((h: any) => typeof h === 'string' ? { text: h, url: '' } : h)
+    : DEFAULT_DATA.highlights;
+    
+    // Migration: config
+    const migratedConfig = { 
+        ...DEFAULT_DATA.config, 
+        ...(loaded.config || {}),
+        navItems: loaded.config?.navItems || DEFAULT_DATA.config.navItems
+    };
+
+    return { 
+        ...DEFAULT_DATA, 
+        ...loaded,
+        highlights: migratedHighlights,
+        config: migratedConfig
+    };
+};
+
+export const getData = async (): Promise<ProfileData> => {
+  // 1. Try to fetch from Firestore first
+  if (db) {
+      try {
+          const docRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC_ID);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+              const cloudData = docSnap.data();
+              console.log("Data loaded from Cloud (Firestore)");
+              // Also update local storage cache
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
+              return mergeData(cloudData);
+          } else {
+             console.log("No cloud data found, using defaults or local cache.");
+          }
+      } catch (error) {
+          console.error("Failed to load from Cloud:", error);
+      }
+  }
+
+  // 2. Fallback to LocalStorage
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
     try {
-      const parsed = JSON.parse(stored);
-      // Helper to migrate old highlight strings to objects if needed
-      const migratedHighlights = Array.isArray(parsed.highlights) 
-        ? parsed.highlights.map((h: any) => typeof h === 'string' ? { text: h, url: '' } : h)
-        : DEFAULT_DATA.highlights;
-      
-      // Helper to migrate config with missing navItems
-      const migratedConfig = { 
-          ...DEFAULT_DATA.config, 
-          ...(parsed.config || {}),
-          navItems: parsed.config?.navItems || DEFAULT_DATA.config.navItems
-      };
-
-      return { 
-          ...DEFAULT_DATA, 
-          ...parsed,
-          highlights: migratedHighlights,
-          config: migratedConfig
-      };
+      console.log("Data loaded from LocalStorage Cache");
+      return mergeData(JSON.parse(stored));
     } catch (e) {
-      console.error("Failed to parse stored data", e);
-      return DEFAULT_DATA;
+      console.error("Failed to parse local storage", e);
     }
   }
+
+  // 3. Fallback to Defaults
   return DEFAULT_DATA;
 };
 
-export const saveData = (data: ProfileData): void => {
+export const saveData = async (data: ProfileData): Promise<void> => {
+  // 1. Always save to LocalStorage (Cache)
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+  // 2. Save to Firestore if available
+  if (db) {
+      try {
+          const docRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC_ID);
+          await setDoc(docRef, data);
+          console.log("Data saved to Cloud (Firestore)");
+      } catch (error) {
+          console.error("Failed to save to Cloud:", error);
+          throw error; // Re-throw to alert user in UI
+      }
+  } else {
+      console.warn("Firestore not configured. Data saved locally only.");
+  }
 };
 
 export const resetData = (): ProfileData => {
