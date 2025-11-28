@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2, Plus } from 'lucide-react';
 import { ProfileData, PortfolioItem, HighlightItem, NavItem } from './types';
@@ -611,7 +610,7 @@ const App: React.FC = () => {
                         value={data.name}
                         onChange={(val) => updateField('name', val)}
                         isEditing={isAdmin}
-                        className="font-heading text-6xl md:text-8xl lg:text-9xl mb-8 text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 leading-tight"
+                        className="font-heading text-6xl md:text-8xl lg:text-9xl mb-16 text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 leading-tight"
                         />
                         
                         <div className="text-gray-400 font-light text-lg md:text-xl leading-relaxed max-w-2xl">
