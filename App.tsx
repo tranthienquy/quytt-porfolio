@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2, Plus } from 'lucide-react';
-import { ProfileData, PortfolioItem, HighlightItem, NavItem } from './types';
+import { ProfileData, PortfolioItem, HighlightItem, NavItem, CustomTextStyle } from './types';
 import { getData, saveData, resetData } from './services/dataService';
-import { EditableText, EditImage, EditGallery, AddButton, DeleteButton, MoveButton } from './components/EditControls';
+import { EditableText, EditImage, EditGallery, AddButton, DeleteButton, MoveButton, StyledEditableText } from './components/EditControls';
 import { firebaseConfig } from './firebaseConfig';
 
 // Custom icons that aren't in Lucide (TikTok)
@@ -242,6 +243,18 @@ const App: React.FC = () => {
     });
   };
 
+  // --- Style Management ---
+  const updateTextStyle = (id: string, newStyle: CustomTextStyle) => {
+      if (!data) return;
+      setData({
+          ...data,
+          textStyles: {
+              ...data.textStyles,
+              [id]: newStyle
+          }
+      });
+  };
+
   const updateNavItem = (index: number, field: keyof NavItem, value: string) => {
       if (!data) return;
       const newNav = [...data.config.navItems];
@@ -436,12 +449,15 @@ const App: React.FC = () => {
             {/* Fallback to Text Logo if no image */}
             {!data.logoImageUrl && (
                 <div className="inline-block p-1">
-                    <EditableText 
+                    <StyledEditableText
+                        id="logo_text"
                         tagName="div"
                         value={data.logoText || "TQ."}
                         onChange={(val) => updateField('logoText', val)}
                         isEditing={isAdmin}
                         className="text-2xl font-black tracking-tighter leading-none bg-white text-black px-1"
+                        customStyle={data.textStyles['logo_text']}
+                        onStyleUpdate={(s) => updateTextStyle('logo_text', s)}
                     />
                 </div>
             )}
@@ -597,29 +613,38 @@ const App: React.FC = () => {
                     }
                 >
                     <div className="max-w-3xl">
-                        <EditableText 
-                        tagName="h3"
-                        value={data.role}
-                        onChange={(val) => updateField('role', val)}
-                        isEditing={isAdmin}
-                        className="text-blue-500 tracking-[0.2em] text-sm md:text-base font-medium mb-4 flex items-center gap-4 before:content-[''] before:w-12 before:h-[1px] before:bg-blue-500 after:content-[''] after:w-12 after:h-[1px] after:bg-blue-500"
+                        <StyledEditableText 
+                            id="hero_role"
+                            tagName="h3"
+                            value={data.role}
+                            onChange={(val) => updateField('role', val)}
+                            isEditing={isAdmin}
+                            className="text-blue-500 tracking-[0.2em] text-sm md:text-base font-medium mb-4 flex items-center gap-4 before:content-[''] before:w-12 before:h-[1px] before:bg-blue-500 after:content-[''] after:w-12 after:h-[1px] after:bg-blue-500"
+                            customStyle={data.textStyles['hero_role']}
+                            onStyleUpdate={(s) => updateTextStyle('hero_role', s)}
                         />
                         
-                        <EditableText 
-                        tagName="h1"
-                        value={data.name}
-                        onChange={(val) => updateField('name', val)}
-                        isEditing={isAdmin}
-                        className="font-heading text-6xl md:text-8xl lg:text-9xl mb-16 text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 leading-tight"
+                        <StyledEditableText 
+                            id="hero_name"
+                            tagName="h1"
+                            value={data.name}
+                            onChange={(val) => updateField('name', val)}
+                            isEditing={isAdmin}
+                            className="font-heading text-6xl md:text-8xl lg:text-9xl mb-16 text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 leading-tight"
+                            customStyle={data.textStyles['hero_name']}
+                            onStyleUpdate={(s) => updateTextStyle('hero_name', s)}
                         />
                         
                         <div className="text-gray-400 font-light text-lg md:text-xl leading-relaxed max-w-2xl">
-                             <EditableText 
+                             <StyledEditableText 
+                                id="hero_bio"
                                 tagName="p"
                                 value={data.bioContent}
                                 onChange={(val) => updateField('bioContent', val)}
                                 isEditing={isAdmin}
                                 multiline
+                                customStyle={data.textStyles['hero_bio']}
+                                onStyleUpdate={(s) => updateTextStyle('hero_bio', s)}
                             />
                         </div>
                     </div>
@@ -663,13 +688,16 @@ const App: React.FC = () => {
                                             {highlight.text} <ExternalLink size={14} className="inline ml-1 opacity-50"/>
                                         </a>
                                     ) : (
-                                        <EditableText 
+                                        <StyledEditableText
+                                            id={`highlight_${index}`}
                                             tagName="p"
                                             value={highlight.text}
                                             onChange={(val) => updateHighlightText(index, val)}
                                             isEditing={isAdmin}
                                             multiline
                                             className="text-gray-300 font-light text-lg leading-relaxed"
+                                            customStyle={data.textStyles[`highlight_${index}`]}
+                                            onStyleUpdate={(s) => updateTextStyle(`highlight_${index}`, s)}
                                         />
                                     )}
                                 </div>
@@ -728,23 +756,29 @@ const App: React.FC = () => {
                       <span className="text-[40vw] font-heading leading-none">Art</span>
                   </div>
 
-                  <EditableText 
+                  <StyledEditableText
+                    id="quote_content"
                     tagName="h2"
                     value={data.config.quoteContent}
                     onChange={(val) => updateConfig('quoteContent', val)}
                     isEditing={isAdmin}
                     className="font-heading text-5xl md:text-7xl lg:text-8xl mb-8 relative z-10"
                     multiline
+                    customStyle={data.textStyles['quote_content']}
+                    onStyleUpdate={(s) => updateTextStyle('quote_content', s)}
                   />
                   
                   <div className="flex items-center gap-4 relative z-10">
                        <div className="h-[1px] w-12 bg-black"></div>
-                       <EditableText 
+                       <StyledEditableText
+                        id="quote_author"
                         tagName="p"
                         value={data.config.quoteAuthor}
                         onChange={(val) => updateConfig('quoteAuthor', val)}
                         isEditing={isAdmin}
                         className="font-sans uppercase tracking-[0.2em] text-sm font-bold"
+                        customStyle={data.textStyles['quote_author']}
+                        onStyleUpdate={(s) => updateTextStyle('quote_author', s)}
                        />
                        <div className="h-[1px] w-12 bg-black"></div>
                   </div>
@@ -755,28 +789,37 @@ const App: React.FC = () => {
         <section id="work" className="mt-20">
              <div className="mb-12 border-b border-white/10 pb-4 flex justify-between items-end">
                   <div>
-                      <EditableText 
+                      <StyledEditableText
+                        id="work_title_main"
                         tagName="h2"
                         value={data.config.workTitleMain}
                         onChange={(val) => updateConfig('workTitleMain', val)}
                         isEditing={isAdmin}
                         className="text-6xl md:text-8xl font-black text-white leading-none tracking-tighter"
+                        customStyle={data.textStyles['work_title_main']}
+                        onStyleUpdate={(s) => updateTextStyle('work_title_main', s)}
                       />
-                      <EditableText 
+                      <StyledEditableText 
+                        id="work_title_sub"
                         tagName="span"
                         value={data.config.workTitleSub}
                         onChange={(val) => updateConfig('workTitleSub', val)}
                         isEditing={isAdmin}
                         className="font-heading text-4xl md:text-5xl text-gray-500 block -mt-2 ml-2"
+                        customStyle={data.textStyles['work_title_sub']}
+                        onStyleUpdate={(s) => updateTextStyle('work_title_sub', s)}
                       />
                   </div>
-                  <EditableText 
+                  <StyledEditableText 
+                     id="work_desc"
                      tagName="p"
                      value={data.config.workDescription}
                      onChange={(val) => updateConfig('workDescription', val)}
                      isEditing={isAdmin}
                      className="hidden md:block text-gray-400 max-w-xs text-right text-sm"
                      multiline
+                     customStyle={data.textStyles['work_desc']}
+                     onStyleUpdate={(s) => updateTextStyle('work_desc', s)}
                   />
              </div>
 
@@ -796,32 +839,41 @@ const App: React.FC = () => {
                              {/* LEFT COLUMN: Info & Video */}
                              <div className="lg:w-1/3 lg:sticky lg:top-32 w-full">
                                   {/* Role */}
-                                  <EditableText 
+                                  <StyledEditableText 
+                                    id={`proj_role_${item.id}`}
                                     tagName="p"
                                     value={item.role || "Role"}
                                     onChange={(val) => updatePortfolioItem(index, 'role', val)}
                                     isEditing={isAdmin}
                                     className="text-gray-400 text-sm md:text-base mb-2"
+                                    customStyle={data.textStyles[`proj_role_${item.id}`]}
+                                    onStyleUpdate={(s) => updateTextStyle(`proj_role_${item.id}`, s)}
                                   />
 
                                   {/* Title (Changed to font-body sans-serif) */}
-                                  <EditableText 
+                                  <StyledEditableText
+                                    id={`proj_title_${item.id}`}
                                     tagName="h3"
                                     value={item.title}
                                     onChange={(val) => updatePortfolioItem(index, 'title', val)}
                                     isEditing={isAdmin}
                                     className="font-body text-3xl md:text-5xl font-light text-white mb-6 leading-tight"
                                     multiline
+                                    customStyle={data.textStyles[`proj_title_${item.id}`]}
+                                    onStyleUpdate={(s) => updateTextStyle(`proj_title_${item.id}`, s)}
                                   />
 
                                   {/* Description */}
-                                  <EditableText 
+                                  <StyledEditableText
+                                    id={`proj_desc_${item.id}`}
                                     tagName="p"
                                     value={item.description}
                                     onChange={(val) => updatePortfolioItem(index, 'description', val)}
                                     isEditing={isAdmin}
                                     className="text-gray-400 leading-relaxed mb-8 font-light"
                                     multiline
+                                    customStyle={data.textStyles[`proj_desc_${item.id}`]}
+                                    onStyleUpdate={(s) => updateTextStyle(`proj_desc_${item.id}`, s)}
                                   />
 
                                   {/* Project Logo - Styled with fixed aspect ratio */}
@@ -905,12 +957,15 @@ const App: React.FC = () => {
                                 </div>
                                 <div>
                                     <span className="text-xs text-gray-500 uppercase tracking-widest block">Phone</span>
-                                    <EditableText 
+                                    <StyledEditableText
+                                        id="contact_phone"
                                         tagName="a"
                                         value={data.social.phone}
                                         onChange={(val) => updateSocial('phone', val)}
                                         isEditing={isAdmin}
                                         className="text-xl font-light"
+                                        customStyle={data.textStyles['contact_phone']}
+                                        onStyleUpdate={(s) => updateTextStyle('contact_phone', s)}
                                     />
                                 </div>
                            </div>
@@ -921,12 +976,15 @@ const App: React.FC = () => {
                                 </div>
                                 <div>
                                     <span className="text-xs text-gray-500 uppercase tracking-widest block">Email</span>
-                                    <EditableText 
+                                    <StyledEditableText
+                                        id="contact_email"
                                         tagName="a"
                                         value={data.social.email}
                                         onChange={(val) => updateSocial('email', val)}
                                         isEditing={isAdmin}
                                         className="text-xl font-light"
+                                        customStyle={data.textStyles['contact_email']}
+                                        onStyleUpdate={(s) => updateTextStyle('contact_email', s)}
                                     />
                                 </div>
                            </div>

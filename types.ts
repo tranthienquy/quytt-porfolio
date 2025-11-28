@@ -46,6 +46,18 @@ export interface HighlightItem {
   url: string;
 }
 
+export interface CustomTextStyle {
+  color?: string;
+  fontSize?: string; // e.g. "24px", "1.5rem"
+  fontFamily?: string;
+  fontWeight?: string; // "300", "700", "bold"
+  fontStyle?: 'normal' | 'italic';
+  textAlign?: 'left' | 'center' | 'right' | 'justify';
+  textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
+  letterSpacing?: string;
+  lineHeight?: string;
+}
+
 export interface ProfileData {
   logoText: string;
   logoImageUrl?: string; // New: Optional Logo Image
@@ -60,4 +72,5 @@ export interface ProfileData {
   portfolio: PortfolioItem[];
   social: SocialLinks;
   config: SiteConfig;
+  textStyles: Record<string, CustomTextStyle>; // Store styles key-value pairs
 }

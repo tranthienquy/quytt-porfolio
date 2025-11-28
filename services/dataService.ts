@@ -96,7 +96,8 @@ const DEFAULT_DATA: ProfileData = {
     labelIntro: "INTRODUCTION",
     labelHighlights: "GRID_LAYOUT",
     labelQuote: "ART_DIRECTION"
-  }
+  },
+  textStyles: {}
 };
 
 // Helper to merge default data structure with loaded data (migrations)
@@ -117,7 +118,8 @@ const mergeData = (loaded: any): ProfileData => {
         ...DEFAULT_DATA, 
         ...loaded,
         highlights: migratedHighlights,
-        config: migratedConfig
+        config: migratedConfig,
+        textStyles: loaded.textStyles || {} // Ensure textStyles exists
     };
 };
 

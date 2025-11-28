@@ -1,7 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, CloudUpload, Loader2, FolderOpen, X } from 'lucide-react';
+import { Plus, Trash2, Image as ImageIcon, ArrowUp, ArrowDown, CloudUpload, Loader2, FolderOpen, X, Paintbrush, AlignLeft, AlignCenter, AlignRight, Bold, Italic, Type } from 'lucide-react';
 import { uploadFileToFirebase, getStoredImages } from '../services/uploadService';
+import { CustomTextStyle } from '../types';
 
 interface EditableTextProps {
   value: string;
@@ -10,7 +11,8 @@ interface EditableTextProps {
   className?: string;
   multiline?: boolean;
   placeholder?: string;
-  tagName?: 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'span' | 'div';
+  tagName?: 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'span' | 'div' | 'a';
+  style?: React.CSSProperties; // Add style support
 }
 
 export const EditableText: React.FC<EditableTextProps> = ({
@@ -20,13 +22,16 @@ export const EditableText: React.FC<EditableTextProps> = ({
   className = '',
   multiline = false,
   placeholder = 'Enter text...',
-  tagName: Tag = 'div'
+  tagName: Tag = 'div',
+  style = {}
 }) => {
   if (!isEditing) {
-    return <Tag className={className}>{value}</Tag>;
+    // If tagName is 'a', we assume it might handle its own logic elsewhere, 
+    // but here we render basic text. For actual links, use specific wrapper.
+    return <Tag className={className} style={style}>{value}</Tag>;
   }
 
-  const baseInputStyles = "bg-white/10 border border-blue-500/50 rounded px-2 py-1 text-white focus:outline-none focus:border-blue-400 w-full transition-all";
+  const baseInputStyles = "bg-white/10 border border-blue-500/50 rounded px-2 py-1 text-white focus:outline-none focus:border-blue-400 w-full transition-all font-inherit";
 
   if (multiline) {
     return (
@@ -35,6 +40,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
         onChange={(e) => onChange(e.target.value)}
         className={`${baseInputStyles} ${className} min-h-[100px] resize-y`}
         placeholder={placeholder}
+        style={style}
       />
     );
   }
@@ -46,8 +52,180 @@ export const EditableText: React.FC<EditableTextProps> = ({
       onChange={(e) => onChange(e.target.value)}
       className={`${baseInputStyles} ${className}`}
       placeholder={placeholder}
+      style={style}
     />
   );
+};
+
+// --- STYLE EDITOR COMPONENT ---
+interface StyleEditorProps {
+    currentStyle: CustomTextStyle;
+    onStyleChange: (newStyle: CustomTextStyle) => void;
+    onClose: () => void;
+}
+
+const StyleEditor: React.FC<StyleEditorProps> = ({ currentStyle, onStyleChange, onClose }) => {
+    const updateStyle = (key: keyof CustomTextStyle, value: any) => {
+        onStyleChange({ ...currentStyle, [key]: value });
+    };
+
+    return (
+        <div className="absolute top-full mt-2 left-0 z-50 bg-[#1a1a1a] border border-white/20 p-4 rounded-lg shadow-2xl w-64 flex flex-col gap-3" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center border-b border-white/10 pb-2 mb-1">
+                <span className="text-xs font-bold text-gray-400 uppercase">Text Styles</span>
+                <button onClick={onClose} className="text-gray-500 hover:text-white"><X size={14}/></button>
+            </div>
+
+            {/* Color */}
+            <div className="flex items-center justify-between">
+                <label className="text-xs text-gray-400">Color</label>
+                <div className="flex items-center gap-2">
+                    <input 
+                        type="color" 
+                        value={currentStyle.color || '#ffffff'} 
+                        onChange={(e) => updateStyle('color', e.target.value)}
+                        className="w-6 h-6 rounded bg-transparent cursor-pointer border-none p-0"
+                    />
+                    <span className="text-[10px] font-mono text-gray-500">{currentStyle.color}</span>
+                </div>
+            </div>
+
+            {/* Size */}
+            <div>
+                <label className="text-xs text-gray-400 mb-1 block">Font Size</label>
+                <div className="flex gap-2">
+                    <input 
+                        type="range" 
+                        min="12" 
+                        max="128" 
+                        step="1"
+                        value={parseInt(currentStyle.fontSize || '16')}
+                        onChange={(e) => updateStyle('fontSize', `${e.target.value}px`)}
+                        className="flex-1"
+                    />
+                    <input 
+                        type="text"
+                        value={currentStyle.fontSize || ''}
+                        onChange={(e) => updateStyle('fontSize', e.target.value)}
+                        className="w-12 bg-black border border-white/20 text-[10px] p-1 text-center"
+                        placeholder="px/rem"
+                    />
+                </div>
+            </div>
+
+            {/* Font Family */}
+            <div>
+                <label className="text-xs text-gray-400 mb-1 block">Font Family</label>
+                <select 
+                    value={currentStyle.fontFamily || ''} 
+                    onChange={(e) => updateStyle('fontFamily', e.target.value)}
+                    className="w-full bg-black border border-white/20 text-xs p-1 rounded text-white"
+                >
+                    <option value="">Default (Inherit)</option>
+                    <option value="'Playwrite CZ', cursive">Playwrite Česko (Script)</option>
+                    <option value="'Be Vietnam Pro', sans-serif">Be Vietnam Pro (Sans)</option>
+                    <option value="serif">Serif (Classic)</option>
+                    <option value="monospace">Monospace</option>
+                </select>
+            </div>
+
+            {/* Toggles */}
+            <div className="flex justify-between bg-black/50 p-1 rounded">
+                <button 
+                    onClick={() => updateStyle('fontWeight', currentStyle.fontWeight === 'bold' ? 'normal' : 'bold')}
+                    className={`p-1 rounded ${currentStyle.fontWeight === 'bold' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    title="Bold"
+                >
+                    <Bold size={14} />
+                </button>
+                <button 
+                    onClick={() => updateStyle('fontStyle', currentStyle.fontStyle === 'italic' ? 'normal' : 'italic')}
+                    className={`p-1 rounded ${currentStyle.fontStyle === 'italic' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    title="Italic"
+                >
+                    <Italic size={14} />
+                </button>
+                <button 
+                    onClick={() => updateStyle('textTransform', currentStyle.textTransform === 'uppercase' ? 'none' : 'uppercase')}
+                    className={`p-1 rounded ${currentStyle.textTransform === 'uppercase' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    title="Uppercase"
+                >
+                    <Type size={14} />
+                </button>
+            </div>
+
+             {/* Alignment */}
+             <div className="flex justify-between bg-black/50 p-1 rounded">
+                {['left', 'center', 'right'].map((align) => (
+                    <button 
+                        key={align}
+                        onClick={() => updateStyle('textAlign', align as any)}
+                        className={`p-1 rounded ${currentStyle.textAlign === align ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                    >
+                         {align === 'left' && <AlignLeft size={14} />}
+                         {align === 'center' && <AlignCenter size={14} />}
+                         {align === 'right' && <AlignRight size={14} />}
+                    </button>
+                ))}
+             </div>
+        </div>
+    );
+};
+
+// --- STYLED WRAPPER ---
+interface StyledEditableTextProps extends EditableTextProps {
+    id?: string; // Unique ID to save style
+    customStyle?: CustomTextStyle;
+    onStyleUpdate?: (newStyle: CustomTextStyle) => void;
+}
+
+export const StyledEditableText: React.FC<StyledEditableTextProps> = (props) => {
+    const [showStyleEditor, setShowStyleEditor] = useState(false);
+
+    // Convert CustomTextStyle to React CSS
+    const computedStyle: React.CSSProperties = {
+        ...props.style,
+        color: props.customStyle?.color,
+        fontSize: props.customStyle?.fontSize,
+        fontFamily: props.customStyle?.fontFamily,
+        fontWeight: props.customStyle?.fontWeight,
+        fontStyle: props.customStyle?.fontStyle,
+        textAlign: props.customStyle?.textAlign,
+        textTransform: props.customStyle?.textTransform,
+        letterSpacing: props.customStyle?.letterSpacing,
+        lineHeight: props.customStyle?.lineHeight,
+    };
+
+    return (
+        <div className={`relative group/textWrapper ${props.className} ${!props.customStyle?.textAlign ? '' : 'block'}`} style={{ textAlign: props.customStyle?.textAlign }}>
+            <EditableText 
+                {...props} 
+                className="" // Remove base class here, apply via wrapper or style
+                style={computedStyle} // Apply dynamic styles directly
+            />
+            
+            {/* Style Trigger Button */}
+            {props.isEditing && props.onStyleUpdate && (
+                <div className="absolute -top-3 -right-3 z-40 opacity-0 group-hover/textWrapper:opacity-100 transition-opacity">
+                     <button 
+                        onClick={(e) => { e.stopPropagation(); setShowStyleEditor(!showStyleEditor); }}
+                        className="bg-blue-600 text-white p-1.5 rounded-full shadow-lg hover:bg-blue-500 hover:scale-110 transition-all"
+                        title="Edit Style"
+                     >
+                        <Paintbrush size={12} />
+                     </button>
+                     
+                     {showStyleEditor && (
+                         <StyleEditor 
+                            currentStyle={props.customStyle || {}} 
+                            onStyleChange={props.onStyleUpdate}
+                            onClose={() => setShowStyleEditor(false)}
+                         />
+                     )}
+                </div>
+            )}
+        </div>
+    );
 };
 
 // --- IMAGE LIBRARY MODAL ---
@@ -78,7 +256,7 @@ const ImageLibraryModal: React.FC<ImageLibraryModalProps> = ({ isOpen, onClose, 
             <div className="bg-[#111] border border-white/20 w-full max-w-4xl max-h-[80vh] flex flex-col rounded-lg shadow-2xl">
                 <div className="p-4 border-b border-white/10 flex justify-between items-center bg-[#1a1a1a]">
                     <h3 className="text-white font-body font-extralight text-lg flex items-center gap-2">
-                        <FolderOpen size={20} className="text-blue-500" /> Thư viện ảnh (Cloud)
+                        <FolderOpen size={20} className="text-blue-500" /> <span className="font-extralight">Thư viện ảnh (Cloud)</span>
                     </h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-white p-1">
                         <X size={24} />
