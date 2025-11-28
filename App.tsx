@@ -820,15 +820,15 @@ const App: React.FC = () => {
                                      />
                                  </div>
 
-                                 {/* Project Logo */}
+                                 {/* Project Logo - Updated to 768/354 Ratio */}
                                  <div className="py-6">
-                                     <div className="h-16 md:h-20 w-auto inline-block relative group/logo">
+                                     <div className="w-full max-w-[350px] aspect-[768/354] relative group/logo">
                                         <EditImage 
                                           src={item.logoUrl || "https://placehold.co/400x100/000000/FFFFFF/png?text=LOGO"}
                                           alt="Project Logo"
                                           isEditing={isAdmin}
                                           onImageChange={(url) => updatePortfolioItem(index, 'logoUrl', url)}
-                                          className="h-full w-auto object-contain invert md:invert-0" 
+                                          className="w-full h-full object-contain invert md:invert-0" 
                                         />
                                      </div>
                                  </div>
