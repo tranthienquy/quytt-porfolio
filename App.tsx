@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2 } from 'lucide-react';
+import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2, Plus } from 'lucide-react';
 import { ProfileData, PortfolioItem, HighlightItem, NavItem } from './types';
 import { getData, saveData, resetData } from './services/dataService';
 import { EditableText, EditImage, EditGallery, AddButton, DeleteButton, MoveButton } from './components/EditControls';
@@ -11,6 +12,15 @@ const TikTokIcon = ({ className }: { className?: string }) => (
     <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"></path>
   </svg>
 );
+
+// Helper to extract YouTube ID
+const getYouTubeId = (url: string) => {
+    if (!url) return null;
+    // Enhanced regex to handle more formats and potential whitespace
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.trim().match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+};
 
 // --- GLOWING CURSOR COMPONENT ---
 const GlowingCursor = () => {
@@ -297,7 +307,7 @@ const App: React.FC = () => {
       imageUrl: 'https://picsum.photos/800/600',
       logoUrl: 'https://placehold.co/400x100/000000/FFFFFF/png?text=PROJECT+LOGO',
       gallery: Array(12).fill('https://picsum.photos/400/400'),
-      videoUrl: '#'
+      videoUrl: ''
     };
     updateField('portfolio', [...data.portfolio, newItem]);
   };
@@ -522,434 +532,443 @@ const App: React.FC = () => {
                     <button onClick={() => importInputRef.current?.click()} className="p-2 hover:bg-white/10 rounded text-orange-400" title="Import JSON">
                         <Upload size={16} />
                     </button>
-                    <input type="file" ref={importInputRef} onChange={handleImport} className="hidden" accept=".json" />
-
-                    <div className="w-[1px] h-4 bg-white/20 mx-1"></div>
-
-                    <button onClick={handleReset} className="p-2 hover:bg-white/10 rounded text-red-400" title="Reset Data"><RotateCcw size={16}/></button>
+                    <input type="file" ref={importInputRef} onChange={handleImport} className="hidden" accept="application/json" />
                     
-                    {/* Save Button with Loading State */}
-                    <button 
-                        onClick={handleSave} 
-                        disabled={isSaving}
-                        className={`p-2 rounded text-green-400 flex items-center gap-2 ${isSaving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/10'}`} 
-                        title="Save Changes"
-                    >
-                        {isSaving ? <Loader2 size={16} className="animate-spin"/> : <Save size={16}/>}
-                        {isSaving && <span className="text-[10px]">Saving...</span>}
+                    <button onClick={handleReset} className="p-2 hover:bg-white/10 rounded text-red-400" title="Reset Data">
+                        <RotateCcw size={16} />
                     </button>
                     
-                    <div className="w-[1px] bg-white/20 mx-1"></div>
-                    <button onClick={() => setIsAdmin(false)} className="p-2 hover:bg-white/10 rounded text-white" title="Exit Admin"><LogOut size={16}/></button>
+                    <button 
+                        onClick={handleSave} 
+                        className="flex items-center gap-1 bg-green-700 hover:bg-green-600 text-white px-3 py-1.5 rounded font-bold text-xs"
+                        disabled={isSaving}
+                    >
+                        {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                        {isSaving ? 'SAVING...' : 'SAVE'}
+                    </button>
+                    
+                    <button onClick={() => setIsAdmin(false)} className="p-2 hover:bg-white/10 rounded" title="Logout">
+                        <LogOut size={16} />
+                    </button>
                 </div>
             )}
             </div>
         </div>
       </nav>
 
-      {/* MAIN CONTAINER */}
-      <main className="relative z-10 pt-32 pb-24 px-4 sm:px-8 max-w-[1600px] mx-auto cursor-auto">
+      <div className="max-w-[1600px] mx-auto px-4 md:px-8 pt-32 pb-20 relative z-10">
         
         {/* HERO SECTION */}
-        <section id="home" className="min-h-[auto] md:min-h-[60vh] flex flex-col justify-start relative mb-20 md:mb-32 scroll-mt-32">
-          
-          {/* Background Decorative Type (Editable) */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[15vw] md:text-[18vw] font-black text-[#111] select-none z-0 font-sans tracking-tighter leading-none opacity-50 whitespace-nowrap text-center">
-             <EditableText 
-                value={data.config.heroBackgroundText}
-                onChange={val => updateConfig('heroBackgroundText', val)}
-                isEditing={isAdmin}
-                className="whitespace-nowrap"
-             />
-          </div>
-
-          {/* Admin Toggle Layout Control */}
-          {isAdmin && (
-             <div className="absolute top-0 right-0 z-50">
-                <button 
-                   onClick={() => updateConfig('heroLayoutSwapped', !data.config.heroLayoutSwapped)}
-                   className="flex items-center gap-2 text-xs bg-blue-900/50 text-blue-200 px-3 py-1 rounded border border-blue-500/30 hover:bg-blue-800"
-                >
-                   <ArrowLeftRight size={14} /> Swap Layout
-                </button>
-             </div>
-          )}
-
-          {/* Main Hero Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch relative z-10 w-full min-h-[auto] lg:min-h-[350px] mt-[40px]">
-             
-             {/* Dynamic Order based on config */}
-             {/* Column A: Avatar */}
-             <div className={`lg:col-span-4 h-[300px] lg:h-auto ${data.config.heroLayoutSwapped ? 'lg:order-2' : 'lg:order-1'}`}>
+        <section id="home" className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-[40px] min-h-[350px] items-stretch">
+            
+            {/* PORTRAIT AVATAR (LEFT) */}
+            <div className="lg:col-span-4 flex flex-col h-full">
                  <SelectionFrame 
-                    className="w-full h-full bg-[#0A0A0A]" 
+                    className="flex-1 min-h-[300px] p-2 bg-[#0a0a0a]"
                     label={
                         <EditableText 
                             value={data.config.labelPortrait || "PORTRAIT_AVATAR"} 
-                            onChange={v => updateConfig('labelPortrait', v)} 
-                            isEditing={isAdmin} 
+                            onChange={val => updateConfig('labelPortrait', val)} 
+                            isEditing={isAdmin}
                             tagName="span"
                         />
                     }
                  >
-                     <div className="w-full h-full overflow-hidden relative">
-                        <EditImage 
-                          src={data.avatarUrl}
-                          alt="Portrait Avatar"
-                          isEditing={isAdmin}
-                          onImageChange={(url) => updateField('avatarUrl', url)}
-                          className="w-full h-full object-cover opacity-90 hover:opacity-100 transition-opacity"
-                        />
-                        {/* Overlay Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none"></div>
-                     </div>
+                    <EditImage 
+                        src={data.avatarUrl} 
+                        alt="Profile" 
+                        onImageChange={(url) => updateField('avatarUrl', url)} 
+                        isEditing={isAdmin}
+                        className="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-700"
+                    />
                  </SelectionFrame>
-             </div>
+            </div>
 
-             {/* Column B: Intro Text */}
-             <div className={`lg:col-span-8 h-full ${data.config.heroLayoutSwapped ? 'lg:order-1' : 'lg:order-2'}`}>
-                 <SelectionFrame 
-                    className="bg-[#050505] p-6 md:p-12 h-full flex flex-col justify-center" 
+            {/* INTRODUCTION (RIGHT) */}
+            <div className="lg:col-span-8 flex flex-col h-full">
+                <SelectionFrame 
+                    className="flex-1 flex flex-col justify-center p-8 md:p-12 relative bg-[#080808]"
                     label={
                         <EditableText 
                             value={data.config.labelIntro || "INTRODUCTION"} 
-                            onChange={v => updateConfig('labelIntro', v)} 
-                            isEditing={isAdmin} 
+                            onChange={val => updateConfig('labelIntro', val)} 
+                            isEditing={isAdmin}
                             tagName="span"
                         />
                     }
-                 >
-                    <div className="flex flex-col items-start text-left w-full">
-                       
-                       <div className="flex items-center gap-3 mb-4 md:mb-6">
-                          <span className="h-[1px] w-8 md:w-12 bg-blue-500"></span>
-                          <EditableText 
-                            tagName="h2"
-                            isEditing={isAdmin}
-                            value={data.role}
-                            onChange={(val) => updateField('role', val)}
-                            className="text-blue-500 text-xs md:text-base font-body font-normal tracking-[0.3em] uppercase whitespace-nowrap"
-                          />
-                       </div>
-
-                       <div className="relative mb-6 md:mb-8 w-full">
-                          <EditableText 
-                            tagName="h1"
-                            isEditing={isAdmin}
-                            value={data.name}
-                            onChange={(val) => updateField('name', val)}
-                            className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-heading font-thin text-white relative z-10 mix-blend-lighten leading-tight break-words"
-                          />
-                          {/* Stylized Cursor (Hidden if interactive cursor is active) */}
-                          {isAdmin && (
-                            <div className="absolute -top-4 -right-12 animate-bounce hidden md:block opacity-50">
-                                <MousePointer2 size={32} className="text-white fill-black" />
-                            </div>
-                          )}
-                       </div>
-
-                       <div className="max-w-xl">
-                          <EditableText 
-                            tagName="p"
-                            multiline
-                            isEditing={isAdmin}
-                            value={data.bioContent}
-                            onChange={(val) => updateField('bioContent', val)}
-                            className="text-gray-400 font-extralight text-base md:text-xl leading-relaxed"
-                          />
-                       </div>
+                >
+                    <div className="max-w-3xl">
+                        <EditableText 
+                        tagName="h3"
+                        value={data.role}
+                        onChange={(val) => updateField('role', val)}
+                        isEditing={isAdmin}
+                        className="text-blue-500 tracking-[0.2em] text-sm md:text-base font-medium mb-4 flex items-center gap-4 before:content-[''] before:w-12 before:h-[1px] before:bg-blue-500 after:content-[''] after:w-12 after:h-[1px] after:bg-blue-500"
+                        />
+                        
+                        <EditableText 
+                        tagName="h1"
+                        value={data.name}
+                        onChange={(val) => updateField('name', val)}
+                        isEditing={isAdmin}
+                        className="font-heading text-6xl md:text-8xl lg:text-9xl mb-8 text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 leading-tight"
+                        />
+                        
+                        <div className="text-gray-400 font-light text-lg md:text-xl leading-relaxed max-w-2xl">
+                             <EditableText 
+                                tagName="p"
+                                value={data.bioContent}
+                                onChange={(val) => updateField('bioContent', val)}
+                                isEditing={isAdmin}
+                                multiline
+                            />
+                        </div>
                     </div>
-                 </SelectionFrame>
-             </div>
 
-          </div>
+                    {/* Stylized Cursor Icon (Purely Visual) */}
+                    <div className="absolute top-10 right-10 opacity-20 hidden lg:block pointer-events-none">
+                        <MousePointer2 size={120} strokeWidth={0.5} />
+                    </div>
+                </SelectionFrame>
+            </div>
+
         </section>
 
-
-        {/* TABLE OF CONTENTS / HIGHLIGHTS */}
-        <section id="highlights" className="mb-20 md:mb-40 max-w-6xl mx-auto scroll-mt-32">
-           <div className="flex items-end justify-between mb-8 md:mb-16 px-2 md:px-4">
-              <h3 className="text-3xl md:text-6xl font-heading relative z-10 flex flex-col">
-                 <span className="font-sans font-black text-transparent stroke-white text-stroke-1 block text-lg md:text-2xl opacity-30 tracking-widest mb-[-5px] md:mb-[-10px]">
-                    <EditableText value={data.config.tocSubtitle} onChange={v => updateConfig('tocSubtitle', v)} isEditing={isAdmin} tagName="span" />
-                 </span>
-                 <EditableText value={data.config.tocTitle} onChange={v => updateConfig('tocTitle', v)} isEditing={isAdmin} tagName="span" />
-              </h3>
-              <div className="hidden md:block">
-                  <Move className="text-blue-500 animate-pulse" />
-              </div>
-           </div>
-           
-           <SelectionFrame 
-                className="p-0 border-none" 
+        {/* HIGHLIGHTS SECTION */}
+        <section id="highlights" className="mt-6">
+            <SelectionFrame 
+                className="p-8 md:p-12 bg-[#080808]"
                 label={
                     <EditableText 
                         value={data.config.labelHighlights || "GRID_LAYOUT"} 
-                        onChange={v => updateConfig('labelHighlights', v)} 
-                        isEditing={isAdmin} 
+                        onChange={val => updateConfig('labelHighlights', val)} 
+                        isEditing={isAdmin}
                         tagName="span"
                     />
                 }
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
-                 {data.highlights.map((item, index) => (
-                    <div key={index} className="group relative p-6 md:p-8 border border-white/10 hover:border-blue-500/50 bg-[#0A0A0A] transition-all hover:-translate-y-2 h-full min-h-[200px] flex flex-col justify-between overflow-hidden cursor-none">
-                       {/* Number Background */}
-                       <div className="absolute -right-4 -top-6 text-[80px] md:text-[120px] font-black text-[#111] leading-none select-none group-hover:text-[#161618] transition-colors font-sans z-0">
-                          {String(index + 1).padStart(2, '0')}
-                       </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
+                     {data.highlights.map((highlight, index) => (
+                        <div key={index} className="group relative">
+                             {/* Highlight Number */}
+                             <div className="text-8xl font-black text-[#151515] absolute -top-10 -left-6 z-0 select-none group-hover:text-[#222] transition-colors">
+                                {String(index + 1).padStart(2, '0')}
+                             </div>
+                             
+                             {/* Content */}
+                             <div className="relative z-10 pt-4 border-t border-white/10 group-hover:border-blue-500/50 transition-colors">
+                                <div className="min-h-[60px] flex items-start">
+                                    {/* Link Support */}
+                                    {highlight.url && !isAdmin ? (
+                                        <a href={highlight.url} target="_blank" rel="noopener noreferrer" className="text-gray-300 font-light text-lg leading-relaxed hover:text-blue-400 transition-colors block">
+                                            {highlight.text} <ExternalLink size={14} className="inline ml-1 opacity-50"/>
+                                        </a>
+                                    ) : (
+                                        <EditableText 
+                                            tagName="p"
+                                            value={highlight.text}
+                                            onChange={(val) => updateHighlightText(index, val)}
+                                            isEditing={isAdmin}
+                                            multiline
+                                            className="text-gray-300 font-light text-lg leading-relaxed"
+                                        />
+                                    )}
+                                </div>
 
-                       <div className="relative z-10">
-                          {isAdmin && (
-                              <div className="flex gap-1 mb-2 justify-end">
-                                  <MoveButton direction="up" onClick={() => moveHighlight(index, 'up')} disabled={index === 0} />
-                                  <MoveButton direction="down" onClick={() => moveHighlight(index, 'down')} disabled={index === data.highlights.length - 1} />
-                                  <DeleteButton onClick={() => deleteHighlight(index)} />
-                              </div>
-                          )}
-                          
-                          {/* Hyperlink Text Logic */}
-                          {item.url && !isAdmin ? (
-                              <a href={item.url} target="_blank" rel="noopener noreferrer" className="block text-base md:text-lg font-light text-gray-300 hover:text-blue-400 transition-colors z-20 relative cursor-pointer">
-                                  {item.text}
-                                  <ExternalLink size={12} className="inline ml-1 mb-1 opacity-50"/>
-                              </a>
-                          ) : (
-                              <EditableText 
-                                isEditing={isAdmin}
-                                multiline
-                                value={item.text}
-                                onChange={(val) => updateHighlightText(index, val)}
-                                className="text-base md:text-lg font-light text-gray-300 group-hover:text-white transition-colors"
-                              />
-                          )}
+                                {/* Admin Link Input */}
+                                {isAdmin && (
+                                    <div className="mt-2 flex items-center gap-2">
+                                        <LinkIcon size={12} className="text-blue-500" />
+                                        <input 
+                                            type="text" 
+                                            value={highlight.url} 
+                                            onChange={(e) => updateHighlightUrl(index, e.target.value)}
+                                            placeholder="Paste URL here..."
+                                            className="bg-black border border-white/10 text-[10px] p-1 w-full text-blue-300 focus:border-blue-500 focus:outline-none"
+                                        />
+                                    </div>
+                                )}
+                             </div>
 
-                          {/* URL Input (Admin Only) */}
-                          {isAdmin && (
-                              <div className="mt-2 pt-2 border-t border-white/5 flex items-center gap-2">
-                                  <LinkIcon size={12} className="text-blue-500" />
-                                  <input 
-                                    type="text" 
-                                    value={item.url || ""} 
-                                    onChange={(e) => updateHighlightUrl(index, e.target.value)}
-                                    placeholder="Enter URL to make clickable..."
-                                    className="bg-transparent text-xs text-blue-300 w-full focus:outline-none border-b border-transparent focus:border-blue-500 placeholder-gray-700"
-                                  />
-                              </div>
-                          )}
-                       </div>
-
-                       <div className="mt-6 md:mt-8 pt-4 border-t border-white/5 flex justify-between items-center opacity-50 group-hover:opacity-100 transition-opacity">
-                          <span className="text-xs uppercase tracking-widest text-blue-400">Highlight</span>
-                          <ArrowRight size={16} className="text-blue-400 -rotate-45 group-hover:rotate-0 transition-transform" />
-                       </div>
-                    </div>
-                 ))}
-                 
-                 {isAdmin && (
-                   <button onClick={addHighlight} className="h-full min-h-[200px] border border-dashed border-white/20 flex flex-col items-center justify-center text-gray-500 hover:text-blue-400 hover:border-blue-500/50 transition-all">
-                      <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                         <span className="text-2xl">+</span>
-                      </div>
-                      <span className="uppercase tracking-widest text-sm">Add Entry</span>
-                   </button>
-                 )}
-              </div>
-           </SelectionFrame>
+                             {/* Admin Controls */}
+                             {isAdmin && (
+                                <div className="absolute top-0 right-0 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <MoveButton direction="up" onClick={() => moveHighlight(index, 'up')} disabled={index === 0} />
+                                    <MoveButton direction="down" onClick={() => moveHighlight(index, 'down')} disabled={index === data.highlights.length - 1} />
+                                    <button onClick={() => deleteHighlight(index)} className="p-1 bg-red-500/80 rounded text-white"><Trash2 size={14}/></button>
+                                </div>
+                             )}
+                        </div>
+                     ))}
+                     
+                     {isAdmin && (
+                        <button onClick={addHighlight} className="min-h-[200px] border border-dashed border-white/10 flex flex-col items-center justify-center text-gray-500 hover:text-white hover:border-blue-500 transition-all rounded">
+                            <Plus size={32} />
+                            <span className="mt-2 text-sm uppercase tracking-wider">Add Highlight</span>
+                        </button>
+                     )}
+                </div>
+            </SelectionFrame>
         </section>
 
-        {/* PORTFOLIO SECTION */}
-        <section id="work" className="mb-32 scroll-mt-32">
-           <div className="max-w-[1600px] mx-auto">
-              <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 px-4">
-                 <div>
-                    <h3 className="text-[12vw] md:text-8xl font-black text-white leading-[0.8] tracking-tighter flex items-end">
-                       <EditableText value={data.config.workTitleMain} onChange={v => updateConfig('workTitleMain', v)} isEditing={isAdmin} tagName="span" />
-                       <span className="text-blue-600 ml-4 md:ml-16 opacity-90 font-heading">
-                          <EditableText value={data.config.workTitleSub} onChange={v => updateConfig('workTitleSub', v)} isEditing={isAdmin} tagName="span" />
-                       </span>
-                    </h3>
-                 </div>
-                 <div className="md:max-w-xs text-sm text-gray-400 font-light border-l border-white/20 pl-4 hidden md:block">
-                    <EditableText value={data.config.workDescription} onChange={v => updateConfig('workDescription', v)} isEditing={isAdmin} multiline tagName="p" />
-                 </div>
-              </div>
+        {/* QUOTE SECTION (ART_DIRECTION) */}
+        <section className="mt-6">
+             <SelectionFrame 
+                className="bg-white text-black p-12 md:p-24 flex flex-col items-center justify-center text-center relative overflow-hidden"
+                label={
+                    <EditableText 
+                        value={data.config.labelQuote || "ART_DIRECTION"} 
+                        onChange={val => updateConfig('labelQuote', val)} 
+                        isEditing={isAdmin}
+                        tagName="span"
+                    />
+                }
+             >
+                  {/* Decorative huge typography background */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none overflow-hidden">
+                      <span className="text-[40vw] font-heading leading-none">Art</span>
+                  </div>
 
-              {/* PROJECT LIST */}
-              <div className="space-y-24 md:space-y-32">
-                  {data.portfolio.map((item, index) => (
-                      <div key={item.id} className="relative group">
+                  <EditableText 
+                    tagName="h2"
+                    value={data.config.quoteContent}
+                    onChange={(val) => updateConfig('quoteContent', val)}
+                    isEditing={isAdmin}
+                    className="font-heading text-5xl md:text-7xl lg:text-8xl mb-8 relative z-10"
+                    multiline
+                  />
+                  
+                  <div className="flex items-center gap-4 relative z-10">
+                       <div className="h-[1px] w-12 bg-black"></div>
+                       <EditableText 
+                        tagName="p"
+                        value={data.config.quoteAuthor}
+                        onChange={(val) => updateConfig('quoteAuthor', val)}
+                        isEditing={isAdmin}
+                        className="font-sans uppercase tracking-[0.2em] text-sm font-bold"
+                       />
+                       <div className="h-[1px] w-12 bg-black"></div>
+                  </div>
+             </SelectionFrame>
+        </section>
+
+        {/* PORTFOLIO SECTION (WORK Folio) */}
+        <section id="work" className="mt-20">
+             <div className="mb-12 border-b border-white/10 pb-4 flex justify-between items-end">
+                  <div>
+                      <EditableText 
+                        tagName="h2"
+                        value={data.config.workTitleMain}
+                        onChange={(val) => updateConfig('workTitleMain', val)}
+                        isEditing={isAdmin}
+                        className="text-6xl md:text-8xl font-black text-white leading-none tracking-tighter"
+                      />
+                      <EditableText 
+                        tagName="span"
+                        value={data.config.workTitleSub}
+                        onChange={(val) => updateConfig('workTitleSub', val)}
+                        isEditing={isAdmin}
+                        className="font-heading text-4xl md:text-5xl text-gray-500 block -mt-2 ml-2"
+                      />
+                  </div>
+                  <EditableText 
+                     tagName="p"
+                     value={data.config.workDescription}
+                     onChange={(val) => updateConfig('workDescription', val)}
+                     isEditing={isAdmin}
+                     className="hidden md:block text-gray-400 max-w-xs text-right text-sm"
+                     multiline
+                  />
+             </div>
+
+             <div className="space-y-32">
+                 {data.portfolio.map((item, index) => (
+                     <div key={item.id} className="relative group/project">
+                         {isAdmin && <DeleteButton onClick={() => deletePortfolioItem(index)} />}
                          {isAdmin && (
-                            <div className="absolute -top-12 left-0 z-20 bg-black/80 border border-white/20 p-2 rounded flex gap-2 items-center">
-                                <span className="text-xs text-gray-500 uppercase font-mono mr-2">Project Controls:</span>
+                            <div className="absolute -top-10 right-10 flex gap-2">
                                 <MoveButton direction="up" onClick={() => movePortfolioItem(index, 'up')} disabled={index === 0} />
                                 <MoveButton direction="down" onClick={() => movePortfolioItem(index, 'down')} disabled={index === data.portfolio.length - 1} />
-                                <div className="w-[1px] h-4 bg-white/20 mx-1"></div>
-                                <button onClick={() => deletePortfolioItem(index)} className="text-red-400 hover:text-red-300 p-1"><Trash2 size={16}/></button>
                             </div>
                          )}
 
-                         <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 border-b border-white/5 pb-16">
+                         <div className="flex flex-col lg:flex-row gap-8 lg:gap-16 items-start">
                              
-                             {/* LEFT COLUMN: INFO & VIDEO */}
-                             <div className="w-full lg:w-1/3 space-y-8 flex flex-col">
-                                 {/* Title & Role */}
-                                 <div>
-                                     <EditableText 
-                                        tagName="h4"
-                                        isEditing={isAdmin}
-                                        value={item.role || "Role / Position"}
-                                        onChange={(val) => updatePortfolioItem(index, 'role', val)}
-                                        className="text-sm font-light text-gray-400 mb-2 block uppercase tracking-wide"
-                                     />
-                                     <EditableText 
-                                        tagName="h3"
-                                        isEditing={isAdmin}
-                                        value={item.title}
-                                        onChange={(val) => updatePortfolioItem(index, 'title', val)}
-                                        // Changed font-heading to font-body as requested
-                                        className="text-3xl md:text-5xl font-body font-medium leading-tight text-white mb-6"
-                                     />
-                                     <EditableText 
-                                        tagName="p"
-                                        multiline
-                                        isEditing={isAdmin}
-                                        value={item.description}
-                                        onChange={(val) => updatePortfolioItem(index, 'description', val)}
-                                        className="text-base text-gray-300 font-light leading-relaxed max-w-md"
-                                     />
-                                 </div>
+                             {/* LEFT COLUMN: Info & Video */}
+                             <div className="lg:w-1/3 lg:sticky lg:top-32 w-full">
+                                  {/* Role */}
+                                  <EditableText 
+                                    tagName="p"
+                                    value={item.role || "Role"}
+                                    onChange={(val) => updatePortfolioItem(index, 'role', val)}
+                                    isEditing={isAdmin}
+                                    className="text-gray-400 text-sm md:text-base mb-2"
+                                  />
 
-                                 {/* Project Logo - Updated to 768/354 Ratio */}
-                                 <div className="py-6">
-                                     <div className="w-full max-w-[350px] aspect-[768/354] relative group/logo">
-                                        <EditImage 
-                                          src={item.logoUrl || "https://placehold.co/400x100/000000/FFFFFF/png?text=LOGO"}
-                                          alt="Project Logo"
-                                          isEditing={isAdmin}
-                                          onImageChange={(url) => updatePortfolioItem(index, 'logoUrl', url)}
-                                          className="w-full h-full object-contain invert md:invert-0" 
-                                        />
-                                     </div>
-                                 </div>
+                                  {/* Title (Changed to font-body sans-serif) */}
+                                  <EditableText 
+                                    tagName="h3"
+                                    value={item.title}
+                                    onChange={(val) => updatePortfolioItem(index, 'title', val)}
+                                    isEditing={isAdmin}
+                                    className="font-body text-3xl md:text-5xl font-light text-white mb-6 leading-tight"
+                                    multiline
+                                  />
 
-                                 {/* Video Button / Thumbnail */}
-                                 <div className="mt-auto pt-8">
-                                     <div className="relative aspect-video w-full overflow-hidden border border-white/10 group/video cursor-pointer">
-                                         <EditImage
-                                            src={item.imageUrl} // Using main image as video thumbnail
-                                            alt="Video Thumbnail"
-                                            isEditing={isAdmin}
-                                            onImageChange={(url) => updatePortfolioItem(index, 'imageUrl', url)}
-                                            className="w-full h-full object-cover opacity-60 group-hover/video:opacity-80 transition-opacity"
-                                         />
-                                         <div className="absolute inset-0 flex items-center justify-center">
-                                             <div className="w-16 h-16 bg-red-600 rounded-lg flex items-center justify-center shadow-2xl group-hover/video:scale-110 transition-transform">
-                                                 <Play size={32} fill="white" className="text-white ml-1" />
-                                             </div>
-                                         </div>
-                                         <div className="absolute bottom-4 right-4 flex gap-2">
-                                             <span className="bg-black/80 text-white text-[10px] px-2 py-1 rounded font-bold uppercase">Full Show</span>
-                                         </div>
-                                         {isAdmin && (
-                                            <div className="absolute top-2 left-2 bg-black/80 p-2 z-10">
-                                                <label className="text-xs text-gray-400 block">Video Link:</label>
+                                  {/* Description */}
+                                  <EditableText 
+                                    tagName="p"
+                                    value={item.description}
+                                    onChange={(val) => updatePortfolioItem(index, 'description', val)}
+                                    isEditing={isAdmin}
+                                    className="text-gray-400 leading-relaxed mb-8 font-light"
+                                    multiline
+                                  />
+
+                                  {/* Project Logo - Styled with fixed aspect ratio */}
+                                  <div className="mb-8" style={{ aspectRatio: '768/354', maxWidth: '100%' }}>
+                                      <EditImage 
+                                        src={item.logoUrl || ''}
+                                        alt="Project Logo"
+                                        onImageChange={(url) => updatePortfolioItem(index, 'logoUrl', url)}
+                                        isEditing={isAdmin}
+                                        className="w-full h-full object-contain" 
+                                      />
+                                  </div>
+
+                                  {/* Video Section (YouTube Embed) */}
+                                  <div className="relative aspect-video bg-black/50 border border-white/10 group overflow-hidden mt-8 w-full">
+                                       {/* If valid Youtube ID, show iframe */}
+                                       {getYouTubeId(item.videoUrl || '') ? (
+                                            <iframe 
+                                                width="100%" 
+                                                height="100%" 
+                                                src={`https://www.youtube.com/embed/${getYouTubeId(item.videoUrl || '')}?rel=0&modestbranding=1&playsinline=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
+                                                title="YouTube video player" 
+                                                frameBorder="0" 
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                                                allowFullScreen
+                                                referrerPolicy="strict-origin-when-cross-origin"
+                                                className="absolute inset-0 z-10 w-full h-full"
+                                            ></iframe>
+                                       ) : (
+                                            /* Fallback Thumbnail if no video or invalid link */
+                                            <EditImage 
+                                                src={item.imageUrl} 
+                                                alt={item.title} 
+                                                onImageChange={(url) => updatePortfolioItem(index, 'imageUrl', url)} 
+                                                isEditing={isAdmin}
+                                                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                                            />
+                                       )}
+
+                                       {/* Admin Input for Video URL (Always visible in Admin mode, z-index higher than iframe) */}
+                                       {isAdmin && (
+                                            <div className="absolute top-0 right-0 z-50 p-2 bg-black/90 w-full border-b border-blue-500/30">
+                                                <span className="text-[10px] text-blue-400 block mb-1 font-bold">YOUTUBE URL:</span>
                                                 <input 
                                                     type="text" 
-                                                    value={item.videoUrl} 
+                                                    value={item.videoUrl || ''}
                                                     onChange={(e) => updatePortfolioItem(index, 'videoUrl', e.target.value)}
-                                                    className="bg-transparent border-b border-white/50 text-white text-xs w-32 focus:outline-none" 
+                                                    placeholder="Paste Youtube Link..."
+                                                    className="w-full bg-white/10 text-xs border border-white/20 p-1 text-white focus:outline-none focus:border-blue-500"
                                                 />
                                             </div>
-                                         )}
-                                     </div>
-                                 </div>
+                                       )}
+                                  </div>
                              </div>
 
-                             {/* RIGHT COLUMN: GALLERY */}
-                             <div className="w-full lg:w-2/3">
-                                <EditGallery 
-                                    images={item.gallery || Array(12).fill("https://picsum.photos/400/400")}
+                             {/* RIGHT COLUMN: Gallery Grid */}
+                             <div className="lg:w-2/3 w-full">
+                                  <EditGallery 
+                                    images={item.gallery || []}
+                                    onImagesChange={(imgs) => updatePortfolioItem(index, 'gallery', imgs)}
                                     isEditing={isAdmin}
-                                    onImagesChange={(newImages) => updatePortfolioItem(index, 'gallery', newImages)}
-                                />
+                                  />
                              </div>
                          </div>
+                     </div>
+                 ))}
+
+                 {isAdmin && <AddButton onClick={addPortfolioItem} label="Add New Project" />}
+             </div>
+        </section>
+
+        {/* CONTACT SECTION */}
+        <section id="contact" className="mt-32 pt-20 border-t border-white/10">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                  <div>
+                      <h2 className="text-4xl font-heading mb-8">Let's Create Together</h2>
+                      <div className="flex flex-col gap-6">
+                           <div className="flex items-center gap-4 group cursor-pointer">
+                                <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+                                    <Phone size={20} />
+                                </div>
+                                <div>
+                                    <span className="text-xs text-gray-500 uppercase tracking-widest block">Phone</span>
+                                    <EditableText 
+                                        tagName="a"
+                                        value={data.social.phone}
+                                        onChange={(val) => updateSocial('phone', val)}
+                                        isEditing={isAdmin}
+                                        className="text-xl font-light"
+                                    />
+                                </div>
+                           </div>
+                           
+                           <div className="flex items-center gap-4 group cursor-pointer">
+                                <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+                                    <Mail size={20} />
+                                </div>
+                                <div>
+                                    <span className="text-xs text-gray-500 uppercase tracking-widest block">Email</span>
+                                    <EditableText 
+                                        tagName="a"
+                                        value={data.social.email}
+                                        onChange={(val) => updateSocial('email', val)}
+                                        isEditing={isAdmin}
+                                        className="text-xl font-light"
+                                    />
+                                </div>
+                           </div>
                       </div>
-                  ))}
+                  </div>
                   
-                  {isAdmin && (
-                    <div className="mt-20">
-                         <AddButton onClick={addPortfolioItem} label="Add New Project" />
-                    </div>
-                  )}
-              </div>
-           </div>
+                  <div className="flex flex-col justify-end items-start md:items-end">
+                       <div className="flex gap-4">
+                            <a href={data.social.facebook} target="_blank" rel="noreferrer" className="w-16 h-16 border border-white/20 flex items-center justify-center hover:bg-blue-600 hover:border-transparent transition-all">
+                                <Facebook size={24} />
+                            </a>
+                            <a href={data.social.tiktok} target="_blank" rel="noreferrer" className="w-16 h-16 border border-white/20 flex items-center justify-center hover:bg-black hover:border-white transition-all">
+                                <TikTokIcon className="text-2xl" />
+                            </a>
+                       </div>
+                       
+                       {isAdmin && (
+                           <div className="mt-4 flex flex-col gap-2 w-full md:w-auto">
+                               <input 
+                                value={data.social.facebook} 
+                                onChange={(e) => updateSocial('facebook', e.target.value)}
+                                className="bg-transparent border border-white/10 p-1 text-xs text-gray-500 w-full"
+                                placeholder="Facebook URL"
+                               />
+                               <input 
+                                value={data.social.tiktok} 
+                                onChange={(e) => updateSocial('tiktok', e.target.value)}
+                                className="bg-transparent border border-white/10 p-1 text-xs text-gray-500 w-full"
+                                placeholder="TikTok URL"
+                               />
+                           </div>
+                       )}
+                  </div>
+             </div>
+             
+             <div className="mt-20 text-center text-gray-600 text-sm font-light uppercase tracking-widest">
+                  © {new Date().getFullYear()} Tran Thien Quy Portfolio
+             </div>
         </section>
 
-        {/* FOOTER / CONTACT */}
-        <section id="contact" className="border-t border-white/10 pt-20 scroll-mt-32">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 text-sm">
-                
-                <div className="space-y-6">
-                    <h4 className="font-heading text-2xl">Contact Me</h4>
-                    <div className="space-y-2">
-                        <div className="block text-gray-500 uppercase text-xs tracking-widest">Phone</div>
-                        <EditableText isEditing={isAdmin} value={data.social.phone} onChange={val => updateSocial('phone', val)} className="text-lg font-light" />
-                    </div>
-                    <div className="space-y-2">
-                        <div className="block text-gray-500 uppercase text-xs tracking-widest">Email</div>
-                        <EditableText isEditing={isAdmin} value={data.social.email} onChange={val => updateSocial('email', val)} className="text-lg font-light" />
-                    </div>
-                </div>
-
-                <div className="space-y-6">
-                    <h4 className="font-heading text-2xl">Socials</h4>
-                    <div className="flex gap-4">
-                        <a href={data.social.facebook} target="_blank" rel="noreferrer" className="w-12 h-12 border border-white/20 flex items-center justify-center rounded-full hover:bg-blue-600 hover:border-blue-600 transition-colors">
-                           <Facebook size={20} />
-                        </a>
-                         <a href={data.social.tiktok} target="_blank" rel="noreferrer" className="w-12 h-12 border border-white/20 flex items-center justify-center rounded-full hover:bg-pink-600 hover:border-pink-600 transition-colors">
-                           <TikTokIcon className="text-xl" />
-                        </a>
-                    </div>
-                    {isAdmin && (
-                        <div className="space-y-2">
-                            <input type="text" value={data.social.facebook} onChange={e => updateSocial('facebook', e.target.value)} className="w-full bg-transparent border-b border-white/20 text-xs py-1" placeholder="Facebook URL" />
-                            <input type="text" value={data.social.tiktok} onChange={e => updateSocial('tiktok', e.target.value)} className="w-full bg-transparent border-b border-white/20 text-xs py-1" placeholder="TikTok URL" />
-                        </div>
-                    )}
-                </div>
-
-                <div className="lg:col-span-2 relative">
-                    <SelectionFrame 
-                        className="h-full min-h-[200px] flex items-center justify-center bg-[#111] p-8" 
-                        label={
-                            <EditableText 
-                                value={data.config.labelQuote || "ART_DIRECTION"} 
-                                onChange={v => updateConfig('labelQuote', v)} 
-                                isEditing={isAdmin} 
-                                tagName="span"
-                            />
-                        }
-                    >
-                         <div className="text-center">
-                            <p className="font-heading text-3xl md:text-4xl mb-4 italic">
-                               <EditableText value={data.config.quoteContent} onChange={v => updateConfig('quoteContent', v)} isEditing={isAdmin} tagName="span" />
-                            </p>
-                            <p className="text-gray-500 font-light">— <EditableText value={data.config.quoteAuthor} onChange={v => updateConfig('quoteAuthor', v)} isEditing={isAdmin} tagName="span" /></p>
-                         </div>
-                    </SelectionFrame>
-                </div>
-            </div>
-            
-            <div className="mt-20 flex flex-col md:flex-row gap-4 justify-between items-center text-xs text-gray-600 uppercase tracking-widest font-mono">
-                <p>© {new Date().getFullYear()} All Rights Reserved.</p>
-                <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-white transition-colors">Scroll to top</button>
-            </div>
-        </section>
-
-      </main>
+      </div>
     </div>
   );
 };
