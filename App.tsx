@@ -629,7 +629,7 @@ const App: React.FC = () => {
                             value={data.name}
                             onChange={(val) => updateField('name', val)}
                             isEditing={isAdmin}
-                            className="font-heading text-6xl md:text-8xl lg:text-9xl mb-16 text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 leading-normal py-10"
+                            className="font-heading text-6xl md:text-8xl lg:text-9xl mb-16 text-transparent bg-clip-text bg-gradient-to-b from-white to-gray-500 leading-normal py-4"
                             customStyle={data.textStyles['hero_name']}
                             onStyleUpdate={(s) => updateTextStyle('hero_name', s)}
                         />
