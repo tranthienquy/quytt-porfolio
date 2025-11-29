@@ -272,17 +272,18 @@ const ImageLibraryModal: React.FC<ImageLibraryModalProps> = ({ isOpen, onClose, 
                     ) : images.length === 0 ? (
                         <div className="text-center text-gray-500 py-10">Chưa có ảnh nào được lưu trên Cloud.</div>
                     ) : (
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                        // Updated to Masonry layout for library as well
+                        <div className="columns-3 sm:columns-4 md:columns-5 gap-3 space-y-3">
                             {images.map((url, idx) => (
                                 <div 
                                     key={idx} 
                                     onClick={() => { onSelect(url); onClose(); }}
-                                    className="aspect-square bg-black border border-white/10 cursor-pointer group hover:border-blue-500 relative overflow-hidden rounded"
+                                    className="break-inside-avoid bg-black border border-white/10 cursor-pointer group hover:border-blue-500 relative overflow-hidden rounded mb-3"
                                 >
                                     <img 
                                         src={url} 
                                         alt="stored" 
-                                        className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all" 
+                                        className="w-full h-auto object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all block" 
                                         referrerPolicy="no-referrer"
                                     />
                                     <div className="absolute inset-0 bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -426,19 +427,21 @@ export const EditGallery: React.FC<EditGalleryProps> = ({ images = [], onImagesC
 
     if (!isEditing) {
         return (
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-1 w-full h-full">
+            // Changed from Grid to Masonry layout
+            <div className="columns-2 md:columns-3 gap-4 w-full space-y-4">
                 {images.map((img, i) => (
-                    <div key={i} className="aspect-square overflow-hidden bg-gray-900">
+                    <div key={i} className="break-inside-avoid overflow-hidden bg-gray-900 rounded-lg shadow-lg group">
                         <img 
                             src={img} 
                             alt={`Gallery ${i}`} 
-                            className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" 
+                            className="w-full h-auto object-cover hover:scale-105 transition-transform duration-500 block" 
                             referrerPolicy="no-referrer"
                             onError={(e) => {
                                 e.currentTarget.onerror = null;
                                 e.currentTarget.src = "https://placehold.co/400x400/1a1a1a/white?text=Error";
                             }}
                         />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                     </div>
                 ))}
             </div>
@@ -446,22 +449,25 @@ export const EditGallery: React.FC<EditGalleryProps> = ({ images = [], onImagesC
     }
 
     return (
-        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 w-full h-full p-2 border border-dashed border-blue-500/30 rounded">
+        // Masonry layout for editing as well
+        <div className="columns-2 md:columns-3 gap-4 w-full p-4 border border-dashed border-blue-500/30 rounded bg-blue-500/5 space-y-4">
             {images.map((img, i) => (
-                <GalleryItemUploader 
-                    key={i} 
-                    url={img} 
-                    onUpdate={(url) => handleImageUpdate(i, url)} 
-                    index={i}
-                />
+                <div key={i} className="break-inside-avoid">
+                     <GalleryItemUploader 
+                        url={img} 
+                        onUpdate={(url) => handleImageUpdate(i, url)} 
+                        index={i}
+                    />
+                </div>
             ))}
-            {/* Add placeholder slots if less than 12 */}
-            {images.length < 12 && (
+            {/* Add placeholder button */}
+            {images.length < 24 && (
                  <button 
-                    onClick={() => onImagesChange([...images, 'https://picsum.photos/400/400'])}
-                    className="aspect-square flex items-center justify-center border border-white/10 hover:bg-white/5 transition-colors"
+                    onClick={() => onImagesChange([...images, 'https://picsum.photos/400/600'])}
+                    className="w-full h-40 flex items-center justify-center border border-white/10 hover:bg-white/5 transition-colors rounded-lg break-inside-avoid mb-4"
+                    title="Add Image"
                  >
-                    <Plus size={20} className="text-blue-500"/>
+                    <Plus size={32} className="text-blue-500"/>
                  </button>
             )}
         </div>
@@ -495,28 +501,29 @@ const GalleryItemUploader: React.FC<{ url: string, onUpdate: (url: string) => vo
     };
 
     return (
-        <div className="aspect-square relative group bg-gray-900">
-            <img src={url} alt={`Gallery ${index}`} className="w-full h-full object-cover opacity-60" referrerPolicy="no-referrer" />
+        // Removed aspect-square to allow variable heights
+        <div className="relative group bg-gray-900 rounded-lg overflow-hidden">
+            <img src={url} alt={`Gallery ${index}`} className="w-full h-auto object-cover opacity-60 min-h-[100px]" referrerPolicy="no-referrer" />
             
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-1 gap-1">
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-2 gap-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60">
                 {/* Manual URL Input */}
                 <input 
                 type="text" 
                 value={url} 
                 onChange={(e) => onUpdate(e.target.value)}
-                className="text-[10px] w-full bg-black/80 border border-white/20 p-1 text-white"
+                className="text-[10px] w-full bg-black/80 border border-white/20 p-1 text-white rounded"
                 placeholder="URL"
                 />
 
-                <div className="flex gap-1">
+                <div className="flex gap-2 w-full">
                     {/* Upload Button */}
                     <button 
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploading}
-                        className="bg-blue-600/80 hover:bg-blue-500 text-white rounded p-1 transition-colors flex-1 flex justify-center"
+                        className="bg-blue-600 hover:bg-blue-500 text-white rounded p-1.5 transition-colors flex-1 flex justify-center"
                         title="Upload New"
                     >
-                        {uploading ? <Loader2 size={12} className="animate-spin"/> : <CloudUpload size={12} />}
+                        {uploading ? <Loader2 size={14} className="animate-spin"/> : <CloudUpload size={14} />}
                     </button>
                     <input 
                         type="file" 
@@ -529,10 +536,10 @@ const GalleryItemUploader: React.FC<{ url: string, onUpdate: (url: string) => vo
                     {/* Library Button */}
                      <button 
                         onClick={() => setShowLibrary(true)}
-                        className="bg-gray-600/80 hover:bg-gray-500 text-white rounded p-1 transition-colors flex-1 flex justify-center"
+                        className="bg-gray-600 hover:bg-gray-500 text-white rounded p-1.5 transition-colors flex-1 flex justify-center"
                         title="Select Existing"
                     >
-                        <FolderOpen size={12} />
+                        <FolderOpen size={14} />
                     </button>
                 </div>
             </div>
