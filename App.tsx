@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2, Plus, ArrowUpRight } from 'lucide-react';
 import { ProfileData, PortfolioItem, HighlightItem, NavItem, CustomTextStyle } from './types';
 import { getData, saveData, resetData } from './services/dataService';
-import { EditableText, EditImage, EditGallery, AddButton, DeleteButton, MoveButton, StyledEditableText } from './components/EditControls';
+// Removed EditGallery which was not exported from EditControls and is not used in the project
+import { EditableText, EditImage, AddButton, DeleteButton, MoveButton, StyledEditableText } from './components/EditControls';
 import { firebaseConfig } from './firebaseConfig';
 
 const TikTokIcon = ({ className }: { className?: string }) => (
