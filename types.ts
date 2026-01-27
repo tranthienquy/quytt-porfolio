@@ -8,6 +8,7 @@ export interface PortfolioItem {
   logoUrl?: string;
   gallery?: string[]; // Array of 12 images
   videoUrl?: string;
+  projectUrl?: string; // New field for external project link
 }
 
 export interface SocialLinks {

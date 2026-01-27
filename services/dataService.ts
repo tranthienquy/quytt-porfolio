@@ -34,7 +34,7 @@ const DEFAULT_DATA: ProfileData = {
     { text: "Phát thanh phường Bình Thuận, Quận 7, TP.HCM và phường Bình Thuận, Quận Hải Châu, TP. Đà Nẵng", url: "" },
     { text: "Học bổng 100% đại học FPT TP.HCM", url: "" },
     { text: "Giải ba \"Tôi làm phát thanh viên 2023\" - Quận Đoàn Hải Châu, Thành phố Đà Nẵng", url: "" },
-    { text: "Leader MC Team tại Câu Lạc Bộ Truyền Thông Cóc Sài Gòn", url: "" },
+    { text: "Leader MC Team tại Câu Lạc Club Truyền Thông Cóc Sài Gòn", url: "" },
     { text: "MC hàng trăm chương trình, sự kiện tại FPT", url: "" }
   ],
   portfolio: [
@@ -45,8 +45,8 @@ const DEFAULT_DATA: ProfileData = {
       role: 'Project Manager / Art Director',
       imageUrl: 'https://picsum.photos/seed/fes1/800/800',
       logoUrl: 'https://placehold.co/400x100/000000/FFFFFF/png?text=THANG+AM+VIET',
-      // Real YouTube Link for Demo: 4K Nature Video
       videoUrl: 'https://www.youtube.com/watch?v=LXb3EKWsInQ', 
+      projectUrl: 'https://example.com/project-1',
       gallery: [
         'https://picsum.photos/seed/g1/400/400', 'https://picsum.photos/seed/g2/400/400', 'https://picsum.photos/seed/g3/400/400', 'https://picsum.photos/seed/g4/400/400',
         'https://picsum.photos/seed/g5/400/400', 'https://picsum.photos/seed/g6/400/400', 'https://picsum.photos/seed/g7/400/400', 'https://picsum.photos/seed/g8/400/400',
@@ -60,8 +60,8 @@ const DEFAULT_DATA: ProfileData = {
       role: 'MC / Host',
       imageUrl: 'https://picsum.photos/seed/event1/800/600',
       logoUrl: 'https://placehold.co/400x100/000000/FFFFFF/png?text=GENZ+AI',
-      // Real YouTube Link for Demo: Abstract Tech Background
       videoUrl: 'https://www.youtube.com/watch?v=ScMzIvxBSi4',
+      projectUrl: 'https://example.com/project-2',
       gallery: [
          'https://picsum.photos/seed/ai1/400/400', 'https://picsum.photos/seed/ai2/400/400', 'https://picsum.photos/seed/ai3/400/400', 'https://picsum.photos/seed/ai4/400/400',
          'https://picsum.photos/seed/ai5/400/400', 'https://picsum.photos/seed/ai6/400/400', 'https://picsum.photos/seed/ai7/400/400', 'https://picsum.photos/seed/ai8/400/400',
@@ -102,12 +102,10 @@ const DEFAULT_DATA: ProfileData = {
 
 // Helper to merge default data structure with loaded data (migrations)
 const mergeData = (loaded: any): ProfileData => {
-    // Migration: highlights string[] -> HighlightItem[]
     const migratedHighlights = Array.isArray(loaded.highlights) 
     ? loaded.highlights.map((h: any) => typeof h === 'string' ? { text: h, url: '' } : h)
     : DEFAULT_DATA.highlights;
     
-    // Migration: config
     const migratedConfig = { 
         ...DEFAULT_DATA.config, 
         ...(loaded.config || {}),
@@ -119,61 +117,48 @@ const mergeData = (loaded: any): ProfileData => {
         ...loaded,
         highlights: migratedHighlights,
         config: migratedConfig,
-        textStyles: loaded.textStyles || {} // Ensure textStyles exists
+        textStyles: loaded.textStyles || {} 
     };
 };
 
 export const getData = async (): Promise<ProfileData> => {
-  // 1. Try to fetch from Firestore first
   if (db) {
       try {
           const docRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC_ID);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
               const cloudData = docSnap.data();
-              console.log("Data loaded from Cloud (Firestore)");
-              // Also update local storage cache
               localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudData));
               return mergeData(cloudData);
-          } else {
-             console.log("No cloud data found, using defaults or local cache.");
-          }
+          } 
       } catch (error) {
           console.error("Failed to load from Cloud:", error);
       }
   }
 
-  // 2. Fallback to LocalStorage
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
     try {
-      console.log("Data loaded from LocalStorage Cache");
       return mergeData(JSON.parse(stored));
     } catch (e) {
       console.error("Failed to parse local storage", e);
     }
   }
 
-  // 3. Fallback to Defaults
   return DEFAULT_DATA;
 };
 
 export const saveData = async (data: ProfileData): Promise<void> => {
-  // 1. Always save to LocalStorage (Cache)
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
-  // 2. Save to Firestore if available
   if (db) {
       try {
           const docRef = doc(db, FIRESTORE_COLLECTION, FIRESTORE_DOC_ID);
           await setDoc(docRef, data);
-          console.log("Data saved to Cloud (Firestore)");
       } catch (error) {
           console.error("Failed to save to Cloud:", error);
-          throw error; // Re-throw to alert user in UI
+          throw error;
       }
-  } else {
-      console.warn("Firestore not configured. Data saved locally only.");
   }
 };
 
