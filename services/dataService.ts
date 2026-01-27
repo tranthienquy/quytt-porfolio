@@ -8,7 +8,6 @@ const STORAGE_KEY = 'quy_portfolio_data_v3';
 const FIRESTORE_COLLECTION = 'site_content';
 const FIRESTORE_DOC_ID = 'main_portfolio';
 
-// Initialize Firebase for Firestore (Shared instance)
 let db: any = null;
 try {
     if (firebaseConfig.projectId && firebaseConfig.projectId !== "PROJECT_ID") {
@@ -21,7 +20,7 @@ try {
 
 const DEFAULT_DATA: ProfileData = {
   logoText: "TQ.",
-  logoImageUrl: "", // Default empty
+  logoImageUrl: "", 
   name: "Trần Thiên Quý",
   role: "Event Producer",
   dob: "08/11/1998",
@@ -95,12 +94,13 @@ const DEFAULT_DATA: ProfileData = {
     labelPortrait: "PORTRAIT_AVATAR",
     labelIntro: "INTRODUCTION",
     labelHighlights: "GRID_LAYOUT",
-    labelQuote: "ART_DIRECTION"
+    labelQuote: "ART_DIRECTION",
+    cursorSize: 24,
+    cursorGlowSize: 120
   },
   textStyles: {}
 };
 
-// Helper to merge default data structure with loaded data (migrations)
 const mergeData = (loaded: any): ProfileData => {
     const migratedHighlights = Array.isArray(loaded.highlights) 
     ? loaded.highlights.map((h: any) => typeof h === 'string' ? { text: h, url: '' } : h)
@@ -109,7 +109,9 @@ const mergeData = (loaded: any): ProfileData => {
     const migratedConfig = { 
         ...DEFAULT_DATA.config, 
         ...(loaded.config || {}),
-        navItems: loaded.config?.navItems || DEFAULT_DATA.config.navItems
+        navItems: loaded.config?.navItems || DEFAULT_DATA.config.navItems,
+        cursorSize: loaded.config?.cursorSize || DEFAULT_DATA.config.cursorSize,
+        cursorGlowSize: loaded.config?.cursorGlowSize || DEFAULT_DATA.config.cursorGlowSize
     };
 
     return { 

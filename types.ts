@@ -3,12 +3,12 @@ export interface PortfolioItem {
   id: string;
   title: string;
   description: string;
-  imageUrl: string; // Used as main thumbnail or fallback
+  imageUrl: string; 
   role?: string;
   logoUrl?: string;
-  gallery?: string[]; // Array of 12 images
+  gallery?: string[]; 
   videoUrl?: string;
-  projectUrl?: string; // New field for external project link
+  projectUrl?: string; 
 }
 
 export interface SocialLinks {
@@ -32,14 +32,16 @@ export interface SiteConfig {
   workDescription: string;
   quoteContent: string;
   quoteAuthor: string;
-  heroLayoutSwapped: boolean; // Control layout direction
-  versionText: string; // New: Editable version text
-  navItems: NavItem[]; // New: Editable navigation items
-  // Editable Layout Labels
+  heroLayoutSwapped: boolean; 
+  versionText: string; 
+  navItems: NavItem[]; 
   labelPortrait: string;
   labelIntro: string;
   labelHighlights: string;
   labelQuote: string;
+  // Cursor Customization
+  cursorSize: number;
+  cursorGlowSize: number;
 }
 
 export interface HighlightItem {
@@ -49,9 +51,9 @@ export interface HighlightItem {
 
 export interface CustomTextStyle {
   color?: string;
-  fontSize?: string; // e.g. "24px", "1.5rem"
+  fontSize?: string; 
   fontFamily?: string;
-  fontWeight?: string; // "300", "700", "bold"
+  fontWeight?: string; 
   fontStyle?: 'normal' | 'italic';
   textAlign?: 'left' | 'center' | 'right' | 'justify';
   textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
@@ -61,7 +63,7 @@ export interface CustomTextStyle {
 
 export interface ProfileData {
   logoText: string;
-  logoImageUrl?: string; // New: Optional Logo Image
+  logoImageUrl?: string; 
   name: string;
   role: string;
   dob: string;
@@ -69,9 +71,9 @@ export interface ProfileData {
   bioTitle: string;
   bioContent: string;
   avatarUrl: string;
-  highlights: HighlightItem[]; // Changed from string[] to object array
+  highlights: HighlightItem[]; 
   portfolio: PortfolioItem[];
   social: SocialLinks;
   config: SiteConfig;
-  textStyles: Record<string, CustomTextStyle>; // Store styles key-value pairs
+  textStyles: Record<string, CustomTextStyle>; 
 }

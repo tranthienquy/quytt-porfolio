@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2, Plus, ArrowUpRight } from 'lucide-react';
+import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2, Plus, ArrowUpRight, MousePointer } from 'lucide-react';
 import { ProfileData, PortfolioItem, HighlightItem, NavItem, CustomTextStyle } from './types';
 import { getData, saveData, resetData } from './services/dataService';
-// Removed EditGallery which was not exported from EditControls and is not used in the project
 import { EditableText, EditImage, AddButton, DeleteButton, MoveButton, StyledEditableText } from './components/EditControls';
 import { firebaseConfig } from './firebaseConfig';
 
@@ -20,9 +19,10 @@ const getYouTubeId = (url: string) => {
 };
 
 /**
- * Phiên bản chuột trước đó: Di chuyển trực tiếp, nhạy bén không delay.
+ * Component hiển thị con trỏ chuột tỏa sáng.
+ * Kích thước được lấy trực tiếp từ config để thay đổi thời gian thực.
  */
-const GlowingCursor = () => {
+const GlowingCursor = ({ size, glowSize }: { size: number, glowSize: number }) => {
     const cursorRef = useRef<HTMLDivElement>(null);
     const glowRef = useRef<HTMLDivElement>(null);
     const mousePos = useRef({ x: 0, y: 0 });
@@ -51,8 +51,24 @@ const GlowingCursor = () => {
 
     return (
         <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden">
-            <div ref={glowRef} className="absolute top-0 left-0 w-[120px] h-[120px] bg-white rounded-full opacity-50 mix-blend-screen pointer-events-none will-change-transform" style={{ filter: 'blur(30px)' }} />
-            <div ref={cursorRef} className="absolute top-0 left-0 w-8 h-8 bg-white rounded-full shadow-[0_0_20px_4px_rgba(255,255,255,0.9)] mix-blend-normal pointer-events-none will-change-transform" />
+            <div 
+                ref={glowRef} 
+                className="absolute top-0 left-0 bg-white rounded-full opacity-50 mix-blend-screen pointer-events-none will-change-transform transition-[width,height] duration-300" 
+                style={{ 
+                    filter: 'blur(30px)', 
+                    width: `${glowSize}px`, 
+                    height: `${glowSize}px` 
+                }} 
+            />
+            <div 
+                ref={cursorRef} 
+                className="absolute top-0 left-0 bg-white rounded-full mix-blend-normal pointer-events-none will-change-transform transition-[width,height] duration-300" 
+                style={{
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    boxShadow: `0 0 20px ${size/4}px rgba(255,255,255,0.9)`
+                }}
+            />
         </div>
     );
 };
@@ -76,6 +92,7 @@ const App: React.FC = () => {
   const [isFirebaseReady, setIsFirebaseReady] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showCursorSettings, setShowCursorSettings] = useState(false);
 
   useEffect(() => {
     getData().then(loadedData => setData(loadedData));
@@ -208,6 +225,7 @@ const App: React.FC = () => {
   const movePortfolioItem = (index: number, direction: 'up' | 'down') => {
       if (!data) return;
       const newP = [...data.portfolio];
+      // Fixed: corrected typo where newH was used instead of newP
       if (direction === 'up' && index > 0) [newP[index], newP[index - 1]] = [newP[index - 1], newP[index]];
       else if (direction === 'down' && index < newP.length - 1) [newP[index], newP[index + 1]] = [newP[index + 1], newP[index]];
       updateField('portfolio', newP);
@@ -243,7 +261,7 @@ const App: React.FC = () => {
 
   return (
     <div className={`min-h-screen bg-[#050505] text-[#EAEAEA] font-body relative overflow-x-hidden ${isAdmin ? '' : 'cursor-none'}`}>
-      {!isAdmin && <GlowingCursor />}
+      {!isAdmin && <GlowingCursor size={data.config.cursorSize} glowSize={data.config.cursorGlowSize} />}
 
       {showLogin && (
         <div className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 backdrop-blur-sm cursor-auto">
@@ -300,7 +318,23 @@ const App: React.FC = () => {
             {!isAdmin ? (
                 <button onClick={() => setShowLogin(true)} className="text-xs font-mono opacity-30 hover:opacity-100 transition-opacity flex items-center gap-2 border border-transparent hover:border-white/20 px-3 py-1 rounded-full cursor-pointer"><Settings size={12} /> <span className="hidden sm:inline">ADMIN</span></button>
             ) : (
-                <div className="flex gap-2 bg-black/80 backdrop-blur border border-white/10 p-1.5 rounded-lg shadow-xl items-center flex-wrap justify-end">
+                <div className="flex gap-4 bg-black/80 backdrop-blur border border-white/10 p-1.5 rounded-lg shadow-xl items-center flex-wrap justify-end">
+                    <div className="relative">
+                        <button onClick={() => setShowCursorSettings(!showCursorSettings)} className={`p-2 rounded transition-colors ${showCursorSettings ? 'bg-blue-600' : 'hover:bg-white/10'}`} title="Cursor Settings"><MousePointer size={16} /></button>
+                        {showCursorSettings && (
+                            <div className="absolute top-full mt-2 right-0 bg-[#1a1a1a] border border-white/20 p-4 rounded shadow-2xl w-48 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-500 uppercase tracking-widest block">Dot Size: {data.config.cursorSize}px</label>
+                                    <input type="range" min="4" max="100" value={data.config.cursorSize} onChange={(e) => updateConfig('cursorSize', parseInt(e.target.value))} className="w-full accent-blue-500" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-500 uppercase tracking-widest block">Glow Size: {data.config.cursorGlowSize}px</label>
+                                    <input type="range" min="40" max="400" value={data.config.cursorGlowSize} onChange={(e) => updateConfig('cursorGlowSize', parseInt(e.target.value))} className="w-full accent-blue-500" />
+                                </div>
+                                <button onClick={() => { updateConfig('cursorSize', 24); updateConfig('cursorGlowSize', 120); }} className="w-full text-[9px] uppercase tracking-tighter text-gray-400 border border-white/5 py-1 hover:bg-white/5">Reset Cursor</button>
+                            </div>
+                        )}
+                    </div>
                     {isFirebaseReady && <a href={`https://console.firebase.google.com/project/${firebaseConfig.projectId}/storage/rules`} target="_blank" rel="noreferrer" className="hidden md:flex items-center gap-1 px-2 py-1 text-[10px] text-green-400 border border-green-500/30 rounded bg-green-900/20 mr-2 hover:bg-green-900/40 transition-colors"><CheckCircle2 size={12} /><span>Cloud Ready</span></a>}
                     <button onClick={() => setIsAdmin(false)} className="p-2 hover:bg-white/10 rounded" title="Logout"><LogOut size={16} /></button>
                     <button onClick={handleSave} className="flex items-center gap-1 bg-green-700 hover:bg-green-600 text-white px-3 py-1.5 rounded font-bold text-xs" disabled={isSaving}>{isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}{isSaving ? 'SAVING...' : 'SAVE'}</button>
