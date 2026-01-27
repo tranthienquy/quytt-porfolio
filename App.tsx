@@ -309,7 +309,7 @@ const App: React.FC = () => {
             </div>
             <div>
             {!isAdmin ? (
-                <button onClick={() => setShowLogin(true)} className="text-xs font-mono opacity-30 hover:opacity-100 transition-opacity flex items-center gap-2 border border-transparent hover:border-white/20 px-3 py-1 rounded-full cursor-pointer"><Settings size={12} /> <span className="hidden sm:inline">ADMIN</span></button>
+                <button onClick={() => setShowLogin(true)} className="opacity-30 hover:opacity-100 transition-opacity p-2 border border-transparent hover:border-white/20 rounded-full cursor-pointer" title="Admin Access"><Settings size={14} /></button>
             ) : (
                 <div className="flex gap-4 bg-black/80 backdrop-blur border border-white/10 p-1.5 rounded-lg shadow-xl items-center flex-wrap justify-end">
                     <div className="relative">
