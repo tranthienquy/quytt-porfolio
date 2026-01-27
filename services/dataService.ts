@@ -29,12 +29,12 @@ const DEFAULT_DATA: ProfileData = {
   bioContent: "Mình làm việc trong lĩnh vực tổ chức sự kiện – đạo diễn sân khấu, nơi mỗi ngày đều là một hành trình sáng tạo mới. Mình thích tạo ra những khoảnh khắc khiến khán giả phải “wow” – không phải vì hoành tráng, mà vì chạm được cảm xúc thật.",
   avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
   highlights: [
-    { text: "Top 24 cuộc thi Én Sinh Viên 2024 - Sân chơi dành cho tài năng dẫn chương trình chuyên nghiệp miền Nam.", url: "" },
-    { text: "Phát thanh phường Bình Thuận, Quận 7, TP.HCM và phường Bình Thuận, Quận Hải Châu, TP. Đà Nẵng", url: "" },
-    { text: "Học bổng 100% đại học FPT TP.HCM", url: "" },
-    { text: "Giải ba \"Tôi làm phát thanh viên 2023\" - Quận Đoàn Hải Châu, Thành phố Đà Nẵng", url: "" },
-    { text: "Leader MC Team tại Câu Lạc Club Truyền Thông Cóc Sài Gòn", url: "" },
-    { text: "MC hàng trăm chương trình, sự kiện tại FPT", url: "" }
+    { label: "AWARD", text: "Top 24 cuộc thi Én Sinh Viên 2024 - Sân chơi MC miền Nam.", url: "" },
+    { label: "EXPERIENCE", text: "Phát thanh phường Bình Thuận, Quận 7, TP.HCM và Đà Nẵng", url: "" },
+    { label: "SCHOLARSHIP", text: "Học bổng 100% đại học FPT TP.HCM", url: "" },
+    { label: "ACHIEVEMENT", text: "Giải ba \"Tôi làm phát thanh viên 2023\" - Đà Nẵng", url: "" },
+    { label: "LEADERSHIP", text: "Leader MC Team tại Câu Lạc Club Truyền Thông Cóc Sài Gòn", url: "" },
+    { label: "MILESTONE", text: "MC hàng trăm chương trình, sự kiện lớn nhỏ tại FPT", url: "" }
   ],
   portfolio: [
     {
@@ -103,7 +103,11 @@ const DEFAULT_DATA: ProfileData = {
 
 const mergeData = (loaded: any): ProfileData => {
     const migratedHighlights = Array.isArray(loaded.highlights) 
-    ? loaded.highlights.map((h: any) => typeof h === 'string' ? { text: h, url: '' } : h)
+    ? loaded.highlights.map((h: any) => ({
+        label: h.label || "HIGHLIGHT",
+        text: typeof h === 'string' ? h : (h.text || ""),
+        url: h.url || ""
+    }))
     : DEFAULT_DATA.highlights;
     
     const migratedConfig = { 

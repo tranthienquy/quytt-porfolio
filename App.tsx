@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2, Plus, ArrowUpRight, MousePointer } from 'lucide-react';
+import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2, Plus, ArrowUpRight, MousePointer, Award, Star, Zap, Info, Briefcase } from 'lucide-react';
 import { ProfileData, PortfolioItem, HighlightItem, NavItem, CustomTextStyle } from './types';
 import { getData, saveData, resetData } from './services/dataService';
 import { EditableText, EditImage, AddButton, DeleteButton, MoveButton, StyledEditableText } from './components/EditControls';
@@ -161,21 +161,14 @@ const App: React.FC = () => {
 
   const addHighlight = () => {
     if (!data) return;
-    const newH: HighlightItem[] = [...data.highlights, { text: "New highlight description...", url: "" }];
+    const newH: HighlightItem[] = [...data.highlights, { label: "NEW ITEM", text: "New highlight description...", url: "" }];
     updateField('highlights', newH);
   };
 
-  const updateHighlightText = (index: number, val: string) => {
+  const updateHighlightField = (index: number, field: keyof HighlightItem, val: string) => {
     if (!data) return;
     const newH = [...data.highlights];
-    newH[index] = { ...newH[index], text: val };
-    updateField('highlights', newH);
-  };
-
-  const updateHighlightUrl = (index: number, val: string) => {
-    if (!data) return;
-    const newH = [...data.highlights];
-    newH[index] = { ...newH[index], url: val };
+    newH[index] = { ...newH[index], [field]: val };
     updateField('highlights', newH);
   };
 
@@ -225,7 +218,6 @@ const App: React.FC = () => {
   const movePortfolioItem = (index: number, direction: 'up' | 'down') => {
       if (!data) return;
       const newP = [...data.portfolio];
-      // Fixed: corrected typo where newH was used instead of newP
       if (direction === 'up' && index > 0) [newP[index], newP[index - 1]] = [newP[index - 1], newP[index]];
       else if (direction === 'down' && index < newP.length - 1) [newP[index], newP[index + 1]] = [newP[index + 1], newP[index]];
       updateField('portfolio', newP);
@@ -364,23 +356,85 @@ const App: React.FC = () => {
             </div>
         </section>
 
-        {/* Highlights Section */}
+        {/* Highlights Section - UPDATED TO ROUNDED CARD STYLE */}
         <section id="highlights" className="mt-6">
             <SelectionFrame className="p-8 md:p-12 bg-[#080808]" label={<EditableText value={data.config.labelHighlights || "GRID_LAYOUT"} onChange={val => updateConfig('labelHighlights', val)} isEditing={isAdmin} Tag="span" />}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12 cursor-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 cursor-auto">
                      {data.highlights.map((highlight, index) => (
-                        <div key={index} className="group relative">
-                             <div className="text-8xl font-black text-[#151515] absolute -top-10 -left-6 z-0 select-none group-hover:text-[#222] transition-colors">{String(index + 1).padStart(2, '0')}</div>
-                             <div className="relative z-10 pt-4 border-t border-white/10 group-hover:border-blue-500/50 transition-colors">
-                                <div className="min-h-[60px] flex items-start">
-                                    {highlight.url && !isAdmin ? <a href={highlight.url} target="_blank" rel="noopener noreferrer" className="text-gray-300 font-light text-lg leading-relaxed hover:text-blue-400 transition-colors block">{highlight.text} <ExternalLink size={14} className="inline ml-1 opacity-50"/></a> : <StyledEditableText id={`highlight_${index}`} Tag="p" value={highlight.text} onChange={(val) => updateHighlightText(index, val)} isEditing={isAdmin} multiline className="text-gray-300 font-light text-lg leading-relaxed" customStyle={data.textStyles[`highlight_${index}`]} onStyleUpdate={(s) => updateTextStyle(`highlight_${index}`, s)} />}
-                                </div>
-                                {isAdmin && <div className="mt-2 flex items-center gap-2"><LinkIcon size={12} className="text-blue-500" /><input type="text" value={highlight.url} onChange={(e) => updateHighlightUrl(index, e.target.value)} placeholder="Paste URL here..." className="bg-black border border-white/10 text-[10px] p-1 w-full text-blue-300 focus:border-blue-500 focus:outline-none" /></div>}
+                        <div key={index} className="group relative bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] p-6 flex items-center gap-6 hover:border-blue-500/30 transition-all duration-500 shadow-2xl">
+                             
+                             {/* Left Icon Part */}
+                             <div className="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-500/5 flex items-center justify-center relative">
+                                <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <Zap size={24} className="text-cyan-400 relative z-10" />
                              </div>
-                             {isAdmin && <div className="absolute top-0 right-0 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity"><MoveButton direction="up" onClick={() => moveHighlight(index, 'up')} disabled={index === 0} /><MoveButton direction="down" onClick={() => moveHighlight(index, 'down')} disabled={index === data.highlights.length - 1} /><button onClick={() => deleteHighlight(index)} className="p-1 bg-red-500/80 rounded text-white"><Trash2 size={14}/></button></div>}
+
+                             {/* Right Text Part */}
+                             <div className="flex-1">
+                                <div className="mb-1">
+                                    <StyledEditableText 
+                                        id={`highlight_label_${index}`} 
+                                        Tag="span" 
+                                        value={highlight.label || "HIGHLIGHT"} 
+                                        onChange={(val) => updateHighlightField(index, 'label', val)} 
+                                        isEditing={isAdmin} 
+                                        className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-[0.2em]" 
+                                        customStyle={data.textStyles[`highlight_label_${index}`]} 
+                                        onStyleUpdate={(s) => updateTextStyle(`highlight_label_${index}`, s)} 
+                                    />
+                                </div>
+                                <div className="flex flex-col">
+                                    {highlight.url && !isAdmin ? (
+                                        <a href={highlight.url} target="_blank" rel="noopener noreferrer" className="text-white font-bold text-base md:text-xl leading-snug hover:text-cyan-400 transition-colors">
+                                            {highlight.text} <ExternalLink size={14} className="inline ml-1 opacity-50"/>
+                                        </a>
+                                    ) : (
+                                        <StyledEditableText 
+                                            id={`highlight_text_${index}`} 
+                                            Tag="p" 
+                                            value={highlight.text} 
+                                            onChange={(val) => updateHighlightField(index, 'text', val)} 
+                                            isEditing={isAdmin} 
+                                            multiline 
+                                            className="text-white font-bold text-base md:text-xl leading-snug" 
+                                            customStyle={data.textStyles[`highlight_text_${index}`]} 
+                                            onStyleUpdate={(s) => updateTextStyle(`highlight_text_${index}`, s)} 
+                                        />
+                                    )}
+                                </div>
+                                {isAdmin && (
+                                    <div className="mt-2 flex items-center gap-2">
+                                        <LinkIcon size={12} className="text-blue-500" />
+                                        <input 
+                                            type="text" 
+                                            value={highlight.url || ""} 
+                                            onChange={(e) => updateHighlightField(index, 'url', e.target.value)} 
+                                            placeholder="Paste URL..." 
+                                            className="bg-black/50 border border-white/10 text-[10px] p-1 w-full text-blue-300 focus:border-blue-500 focus:outline-none rounded" 
+                                        />
+                                    </div>
+                                )}
+                             </div>
+
+                             {/* Admin Controls */}
+                             {isAdmin && (
+                                <div className="absolute top-4 right-4 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <MoveButton direction="up" onClick={() => moveHighlight(index, 'up')} disabled={index === 0} />
+                                    <MoveButton direction="down" onClick={() => moveHighlight(index, 'down')} disabled={index === data.highlights.length - 1} />
+                                    <button onClick={() => deleteHighlight(index)} className="p-1.5 bg-red-600/80 rounded-full text-white shadow-lg"><Trash2 size={12}/></button>
+                                </div>
+                             )}
                         </div>
                      ))}
-                     {isAdmin && <button onClick={addHighlight} className="min-h-[200px] border border-dashed border-white/10 flex flex-col items-center justify-center text-gray-500 hover:text-white hover:border-blue-500 transition-all rounded"><Plus size={32} /><span className="mt-2 text-sm uppercase tracking-wider">Add Highlight</span></button>}
+                     {isAdmin && (
+                        <button 
+                            onClick={addHighlight} 
+                            className="bg-[#0a0a0a]/50 border-2 border-dashed border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-gray-500 hover:text-white hover:border-blue-500 transition-all p-8"
+                        >
+                            <Plus size={32} />
+                            <span className="mt-2 text-sm uppercase tracking-wider font-bold">Add New Highlight Box</span>
+                        </button>
+                     )}
                 </div>
             </SelectionFrame>
         </section>

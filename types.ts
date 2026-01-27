@@ -47,6 +47,7 @@ export interface SiteConfig {
 export interface HighlightItem {
   text: string;
   url: string;
+  label?: string; // New field for titles like "EMAIL" in the image
 }
 
 export interface CustomTextStyle {
