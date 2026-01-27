@@ -66,6 +66,8 @@ export interface CustomTextStyle {
 export interface ProfileData {
   logoText: string;
   logoImageUrl?: string; 
+  thumbnailUrl?: string; // Ảnh thumbnail khi share link
+  faviconUrl?: string;   // Icon trên tab trình duyệt
   name: string;
   role: string;
   dob: string;

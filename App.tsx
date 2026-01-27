@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2, Plus, ArrowUpRight, MousePointer, Award, Star, Zap, Info, Briefcase } from 'lucide-react';
+import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2, Plus, ArrowUpRight, MousePointer, Award, Star, Zap, Info, Briefcase, Globe } from 'lucide-react';
 import { ProfileData, PortfolioItem, HighlightItem, NavItem, CustomTextStyle } from './types';
 import { getData, saveData, resetData } from './services/dataService';
 import { EditableText, EditImage, AddButton, DeleteButton, MoveButton, StyledEditableText } from './components/EditControls';
@@ -26,11 +26,8 @@ const Preloader = ({ onComplete }: { onComplete: () => void }) => {
     const [progress, setProgress] = useState(0);
     const [statusIndex, setStatusIndex] = useState(0);
     const statuses = [
-        "Initializing vibes...",
-        "Checking mic 1, 2, 3...",
+        "Check đàm 1, 2, 3...",
         "Setting up the stage...",
-        "Cooking some magic...",
-        "Đang 'wow' một tí...",
         "Gần xong rồi nè...",
         "Ready to serve!"
     ];
@@ -78,9 +75,6 @@ const Preloader = ({ onComplete }: { onComplete: () => void }) => {
                 <div className="flex flex-col gap-1">
                     <div className="text-blue-500 font-mono text-[10px] md:text-xs uppercase tracking-[0.3em] h-4">
                         {statuses[statusIndex]}
-                    </div>
-                    <div className="text-gray-600 text-[10px] md:text-xs uppercase tracking-[0.1em]">
-                        Trần Thiên Quý / Event Producer / Portfolio 2024
                     </div>
                 </div>
             </div>
@@ -165,15 +159,32 @@ const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [showCursorSettings, setShowCursorSettings] = useState(false);
+  const [showSiteSettings, setShowSiteSettings] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     getData().then(loadedData => {
         setData(loadedData);
-        // We let the Preloader handle the duration
     });
     if (firebaseConfig.projectId && firebaseConfig.projectId !== "PROJECT_ID") setIsFirebaseReady(true);
   }, []);
+
+  // Update real-time meta & favicon
+  useEffect(() => {
+    if (!data) return;
+    
+    // Favicon update
+    const favicon = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+    if (favicon && data.faviconUrl) {
+        favicon.href = data.faviconUrl;
+    }
+
+    // Social Thumbnail (OG Image) update
+    let ogImage = document.querySelector('meta[property="og:image"]');
+    if (ogImage && data.thumbnailUrl) {
+        ogImage.setAttribute('content', data.thumbnailUrl);
+    }
+  }, [data?.faviconUrl, data?.thumbnailUrl]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -366,11 +377,11 @@ const App: React.FC = () => {
             )}
             {!data.logoImageUrl && (
                 <div className="inline-block p-1">
-                    <StyledEditableText id="logo_text" Tag="div" value={data.logoText || "TQ."} onChange={(val) => updateField('logoText', val)} isEditing={isAdmin} className="text-xl md:text-2xl font-black tracking-tighter leading-none bg-white text-black px-1" customStyle={data.textStyles['logo_text']} onStyleUpdate={(s) => updateTextStyle('logo_text', s)} />
+                    <StyledEditableText id="logo_text" tagName="div" value={data.logoText || "TQ."} onChange={(val) => updateField('logoText', val)} isEditing={isAdmin} className="text-xl md:text-2xl font-black tracking-tighter leading-none bg-white text-black px-1" customStyle={data.textStyles['logo_text']} onStyleUpdate={(s) => updateTextStyle('logo_text', s)} />
                 </div>
             )}
           </div>
-          <div className="hidden sm:block text-[8px] md:text-[10px] tracking-widest mt-1 opacity-50"><EditableText Tag="span" value={data.config.versionText || "PORTFOLIO V.1.0"} onChange={(val) => updateConfig('versionText', val)} isEditing={isAdmin} /></div>
+          <div className="hidden sm:block text-[8px] md:text-[10px] tracking-widest mt-1 opacity-50"><EditableText tagName="span" value={data.config.versionText || "PORTFOLIO V.1.0"} onChange={(val) => updateConfig('versionText', val)} isEditing={isAdmin} /></div>
         </div>
         
         <div className="flex items-center gap-2 md:gap-4 pointer-events-auto cursor-auto">
@@ -390,7 +401,32 @@ const App: React.FC = () => {
             ) : (
                 <div className="flex gap-2 md:gap-4 bg-black/80 backdrop-blur border border-white/10 p-1 rounded-lg shadow-xl items-center flex-wrap justify-end">
                     <div className="relative">
-                        <button onClick={() => setShowCursorSettings(!showCursorSettings)} className={`p-1.5 md:p-2 rounded transition-colors ${showCursorSettings ? 'bg-blue-600' : 'hover:bg-white/10'}`} title="Cursor Settings"><MousePointer size={14} md:size={16} /></button>
+                        <button onClick={() => { setShowSiteSettings(!showSiteSettings); setShowCursorSettings(false); }} className={`p-1.5 md:p-2 rounded transition-colors ${showSiteSettings ? 'bg-blue-600 text-white' : 'hover:bg-white/10'}`} title="Site Settings"><Globe size={16} /></button>
+                        {showSiteSettings && (
+                            <div className="absolute top-full mt-2 right-0 bg-[#1a1a1a] border border-white/20 p-4 rounded shadow-2xl w-72 space-y-5 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <h4 className="text-[10px] text-blue-400 uppercase tracking-widest font-bold border-b border-white/10 pb-2">Site Identity</h4>
+                                
+                                {/* Favicon Section */}
+                                <div className="space-y-2">
+                                    <label className="text-[10px] text-gray-500 uppercase tracking-widest flex justify-between items-center">
+                                        <span>Favicon (Tab Icon)</span>
+                                        {data.faviconUrl && <img src={data.faviconUrl} className="w-4 h-4 rounded-sm object-contain bg-white/10 p-0.5" alt="Favicon preview"/>}
+                                    </label>
+                                    <EditImage src={data.faviconUrl || ""} onImageChange={(url) => updateField('faviconUrl', url)} isEditing={isAdmin} className="h-12 border border-white/10 rounded-lg overflow-hidden" />
+                                </div>
+
+                                {/* Social Thumbnail Section */}
+                                <div className="space-y-2">
+                                    <label className="text-[10px] text-gray-500 uppercase tracking-widest">Social Thumbnail (OG Image)</label>
+                                    <EditImage src={data.thumbnailUrl || ""} onImageChange={(url) => updateField('thumbnailUrl', url)} isEditing={isAdmin} className="aspect-video border border-white/10 rounded-lg overflow-hidden" />
+                                    <p className="text-[9px] text-gray-600 leading-tight italic">Recommended size: 1200x630px for better link sharing preview.</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="relative">
+                        <button onClick={() => { setShowCursorSettings(!showCursorSettings); setShowSiteSettings(false); }} className={`p-1.5 md:p-2 rounded transition-colors ${showCursorSettings ? 'bg-blue-600 text-white' : 'hover:bg-white/10'}`} title="Cursor Settings"><MousePointer size={16} /></button>
                         {showCursorSettings && (
                             <div className="absolute top-full mt-2 right-0 bg-[#1a1a1a] border border-white/20 p-4 rounded shadow-2xl w-48 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                 <div className="space-y-1">
@@ -405,8 +441,9 @@ const App: React.FC = () => {
                             </div>
                         )}
                     </div>
+
                     {isFirebaseReady && <a href={`https://console.firebase.google.com/project/${firebaseConfig.projectId}/storage/rules`} target="_blank" rel="noreferrer" className="hidden lg:flex items-center gap-1 px-2 py-1 text-[10px] text-green-400 border border-green-500/30 rounded bg-green-900/20 mr-1 hover:bg-green-900/40 transition-colors"><CheckCircle2 size={12} /><span>Cloud Ready</span></a>}
-                    <button onClick={() => setIsAdmin(false)} className="p-1.5 md:p-2 hover:bg-white/10 rounded" title="Logout"><LogOut size={14} md:size={16} /></button>
+                    <button onClick={() => setIsAdmin(false)} className="p-1.5 md:p-2 hover:bg-white/10 rounded" title="Logout"><LogOut size={16} /></button>
                     <button onClick={handleSave} className="flex items-center gap-1 bg-green-700 hover:bg-green-600 text-white px-2 md:px-3 py-1 md:py-1.5 rounded font-bold text-[10px] md:text-xs" disabled={isSaving}>{isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}{isSaving ? '...' : 'SAVE'}</button>
                 </div>
             )}
@@ -419,16 +456,16 @@ const App: React.FC = () => {
         {/* Intro Section */}
         <section id="home" className="flex flex-col lg:grid lg:grid-cols-12 gap-6 mt-4 md:mt-10 items-stretch">
             <div className="lg:col-span-4 flex flex-col w-full">
-                 <SelectionFrame className="flex-1 aspect-[4/5] lg:aspect-auto min-h-[300px] lg:min-h-[400px] p-2 bg-[#0a0a0a]" label={<EditableText value={data.config.labelPortrait || "PORTRAIT_AVATAR"} onChange={val => updateConfig('labelPortrait', val)} isEditing={isAdmin} Tag="span" />}>
+                 <SelectionFrame className="flex-1 aspect-[4/5] lg:aspect-auto min-h-[300px] lg:min-h-[400px] p-2 bg-[#0a0a0a]" label={<EditableText value={data.config.labelPortrait || "PORTRAIT_AVATAR"} onChange={val => updateConfig('labelPortrait', val)} isEditing={isAdmin} tagName="span" />}>
                     <EditImage src={data.avatarUrl} alt="Profile" onImageChange={(url) => updateField('avatarUrl', url)} isEditing={isAdmin} className="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-700" />
                  </SelectionFrame>
             </div>
             <div className="lg:col-span-8 flex flex-col w-full">
-                <SelectionFrame className="flex-1 flex flex-col justify-center p-6 md:p-12 lg:p-16 relative bg-[#080808]" label={<EditableText value={data.config.labelIntro || "INTRODUCTION"} onChange={val => updateConfig('labelIntro', val)} isEditing={isAdmin} Tag="span" />}>
+                <SelectionFrame className="flex-1 flex flex-col justify-center p-6 md:p-12 lg:p-16 relative bg-[#080808]" label={<EditableText value={data.config.labelIntro || "INTRODUCTION"} onChange={val => updateConfig('labelIntro', val)} isEditing={isAdmin} tagName="span" />}>
                     <div className="max-w-3xl cursor-auto">
-                        <StyledEditableText id="hero_role" Tag="h3" value={data.role} onChange={(val) => updateField('role', val)} isEditing={isAdmin} className="text-blue-500 tracking-[0.2em] text-[10px] md:text-base font-medium mb-3 md:mb-4 flex items-center gap-2 md:gap-4 before:content-[''] before:w-6 md:before:w-12 before:h-[1px] before:bg-blue-500 after:content-[''] after:w-6 md:after:w-12 after:h-[1px] after:bg-blue-500" customStyle={data.textStyles['hero_role']} onStyleUpdate={(s) => updateTextStyle('hero_role', s)} />
-                        <StyledEditableText id="hero_name" Tag="h1" value={data.name} onChange={(val) => updateField('name', val)} isEditing={isAdmin} className="font-inter text-4xl sm:text-5xl md:text-8xl lg:text-9xl mb-8 md:mb-16 text-transparent bg-clip-text bg-gradient-to-r from-[#b0f279] via-[#2dd4bf] to-[#00e5ff] leading-[1.1] md:leading-normal py-2 md:py-4 font-black uppercase tracking-tighter" customStyle={data.textStyles['hero_name']} onStyleUpdate={(s) => updateTextStyle('hero_name', s)} />
-                        <div className="text-gray-400 font-light text-sm md:text-xl leading-relaxed max-w-2xl"><StyledEditableText id="hero_bio" Tag="p" value={data.bioContent} onChange={(val) => updateField('bioContent', val)} isEditing={isAdmin} multiline customStyle={data.textStyles['hero_bio']} onStyleUpdate={(s) => updateTextStyle('hero_bio', s)} /></div>
+                        <StyledEditableText id="hero_role" tagName="h3" value={data.role} onChange={(val) => updateField('role', val)} isEditing={isAdmin} className="text-blue-500 tracking-[0.2em] text-[10px] md:text-base font-medium mb-3 md:mb-4 flex items-center gap-2 md:gap-4 before:content-[''] before:w-6 md:before:w-12 before:h-[1px] before:bg-blue-500 after:content-[''] after:w-6 md:after:w-12 after:h-[1px] after:bg-blue-500" customStyle={data.textStyles['hero_role']} onStyleUpdate={(s) => updateTextStyle('hero_role', s)} />
+                        <StyledEditableText id="hero_name" tagName="h1" value={data.name} onChange={(val) => updateField('name', val)} isEditing={isAdmin} className="font-inter text-4xl sm:text-5xl md:text-8xl lg:text-9xl mb-8 md:mb-16 text-transparent bg-clip-text bg-gradient-to-r from-[#b0f279] via-[#2dd4bf] to-[#00e5ff] leading-[1.1] md:leading-normal py-2 md:py-4 font-black uppercase tracking-tighter" customStyle={data.textStyles['hero_name']} onStyleUpdate={(s) => updateTextStyle('hero_name', s)} />
+                        <div className="text-gray-400 font-light text-sm md:text-xl leading-relaxed max-w-2xl"><StyledEditableText id="hero_bio" tagName="p" value={data.bioContent} onChange={(val) => updateField('bioContent', val)} isEditing={isAdmin} multiline customStyle={data.textStyles['hero_bio']} onStyleUpdate={(s) => updateTextStyle('hero_bio', s)} /></div>
                     </div>
                 </SelectionFrame>
             </div>
@@ -436,7 +473,7 @@ const App: React.FC = () => {
 
         {/* Highlights Section */}
         <section id="highlights" className="mt-6">
-            <SelectionFrame className="p-4 md:p-12 bg-[#080808]" label={<EditableText value={data.config.labelHighlights || "GRID_LAYOUT"} onChange={val => updateConfig('labelHighlights', val)} isEditing={isAdmin} Tag="span" />}>
+            <SelectionFrame className="p-4 md:p-12 bg-[#080808]" label={<EditableText value={data.config.labelHighlights || "GRID_LAYOUT"} onChange={val => updateConfig('labelHighlights', val)} isEditing={isAdmin} tagName="span" />}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 cursor-auto">
                      {data.highlights.map((highlight, index) => (
                         <div key={index} className="group relative bg-[#0a0a0a] border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 flex items-center gap-4 md:gap-6 hover:border-blue-500/30 transition-all duration-500 shadow-2xl">
@@ -444,7 +481,7 @@ const App: React.FC = () => {
                              {/* Left Icon Part */}
                              <div className="shrink-0 w-12 h-12 md:w-20 md:h-20 rounded-full bg-blue-500/5 flex items-center justify-center relative">
                                 <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                <Zap size={18} md:size={24} className="text-cyan-400 relative z-10" />
+                                <Zap size={24} className="text-cyan-400 relative z-10" />
                              </div>
 
                              {/* Right Text Part */}
@@ -452,7 +489,7 @@ const App: React.FC = () => {
                                 <div className="mb-0.5 md:mb-1">
                                     <StyledEditableText 
                                         id={`highlight_label_${index}`} 
-                                        Tag="span" 
+                                        tagName="span" 
                                         value={highlight.label || "HIGHLIGHT"} 
                                         onChange={(val) => updateHighlightField(index, 'label', val)} 
                                         isEditing={isAdmin} 
@@ -469,7 +506,7 @@ const App: React.FC = () => {
                                     ) : (
                                         <StyledEditableText 
                                             id={`highlight_text_${index}`} 
-                                            Tag="p" 
+                                            tagName="p" 
                                             value={highlight.text} 
                                             onChange={(val) => updateHighlightField(index, 'text', val)} 
                                             isEditing={isAdmin} 
@@ -499,7 +536,7 @@ const App: React.FC = () => {
                                 <div className="absolute top-2 right-2 md:top-4 md:right-4 flex gap-1 z-20 md:opacity-0 group-hover:opacity-100 transition-opacity">
                                     <MoveButton direction="up" onClick={() => moveHighlight(index, 'up')} disabled={index === 0} />
                                     <MoveButton direction="down" onClick={() => moveHighlight(index, 'down')} disabled={index === data.highlights.length - 1} />
-                                    <button onClick={() => deleteHighlight(index)} className="p-1 md:p-1.5 bg-red-600/80 rounded-full text-white shadow-lg"><Trash2 size={10} md:size={12}/></button>
+                                    <button onClick={() => deleteHighlight(index)} className="p-1 md:p-1.5 bg-red-600/80 rounded-full text-white shadow-lg"><Trash2 size={12}/></button>
                                 </div>
                              )}
                         </div>
@@ -509,7 +546,7 @@ const App: React.FC = () => {
                             onClick={addHighlight} 
                             className="bg-[#0a0a0a]/50 border-2 border-dashed border-white/5 rounded-2xl md:rounded-[2.5rem] flex flex-col items-center justify-center text-gray-500 hover:text-white hover:border-blue-500 transition-all p-6 md:p-8"
                         >
-                            <Plus size={24} md:size={32} />
+                            <Plus size={32} />
                             <span className="mt-2 text-[10px] md:text-sm uppercase tracking-wider font-bold">Add Highlight</span>
                         </button>
                      )}
@@ -521,8 +558,8 @@ const App: React.FC = () => {
         <section id="work" className="mt-20">
              <div className="mb-8 md:mb-12 border-b border-white/10 pb-4 flex justify-between items-end cursor-auto">
                   <div>
-                      <StyledEditableText id="work_title_main" Tag="h2" value={data.config.workTitleMain} onChange={(val) => updateConfig('workTitleMain', val)} isEditing={isAdmin} className="text-4xl sm:text-5xl md:text-8xl font-black text-white leading-none tracking-tighter" customStyle={data.textStyles['work_title_main']} onStyleUpdate={(s) => updateTextStyle('work_title_main', s)} />
-                      <StyledEditableText id="work_title_sub" Tag="span" value={data.config.workTitleSub} onChange={(val) => updateConfig('workTitleSub', val)} isEditing={isAdmin} className="font-heading text-2xl md:text-5xl text-gray-500 block -mt-1 md:-mt-2 ml-1 md:ml-2" customStyle={data.textStyles['work_title_sub']} onStyleUpdate={(s) => updateTextStyle('work_title_sub', s)} />
+                      <StyledEditableText id="work_title_main" tagName="h2" value={data.config.workTitleMain} onChange={(val) => updateConfig('workTitleMain', val)} isEditing={isAdmin} className="text-4xl sm:text-5xl md:text-8xl font-black text-white leading-none tracking-tighter" customStyle={data.textStyles['work_title_main']} onStyleUpdate={(s) => updateTextStyle('work_title_main', s)} />
+                      <StyledEditableText id="work_title_sub" tagName="span" value={data.config.workTitleSub} onChange={(val) => updateConfig('workTitleSub', val)} isEditing={isAdmin} className="font-heading text-2xl md:text-5xl text-gray-500 block -mt-1 md:-mt-2 ml-1 md:ml-2" customStyle={data.textStyles['work_title_sub']} onStyleUpdate={(s) => updateTextStyle('work_title_sub', s)} />
                   </div>
              </div>
 
@@ -556,7 +593,7 @@ const App: React.FC = () => {
                                         className={`w-full py-3 md:py-4 px-4 md:px-6 bg-[#0a0f1c] hover:bg-[#1a2538] border border-white/10 rounded-xl flex items-center justify-between text-[10px] md:text-xs font-bold tracking-[0.2em] text-blue-400 group/btn transition-all uppercase ${!item.projectUrl && !isAdmin ? 'pointer-events-none opacity-50' : ''}`}
                                       >
                                           <span>Visit Project</span>
-                                          <ArrowRight size={14} md:size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+                                          <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
                                       </a>
                                       
                                       {isAdmin && (
@@ -579,7 +616,7 @@ const App: React.FC = () => {
                                   {/* Metadata/Role */}
                                   <StyledEditableText 
                                     id={`proj_role_${item.id}`}
-                                    Tag="p"
+                                    tagName="p"
                                     value={item.role ? `/ ${item.role.split('/').map(r => r.trim()).join(' / ')}` : "/ PROJECT ROLE"}
                                     onChange={(val) => updatePortfolioItem(index, 'role', val)}
                                     isEditing={isAdmin}
@@ -591,7 +628,7 @@ const App: React.FC = () => {
                                   {/* Title */}
                                   <StyledEditableText
                                     id={`proj_title_${item.id}`}
-                                    Tag="h3"
+                                    tagName="h3"
                                     value={item.title}
                                     onChange={(val) => updatePortfolioItem(index, 'title', val)}
                                     isEditing={isAdmin}
@@ -603,7 +640,7 @@ const App: React.FC = () => {
                                   {/* Description */}
                                   <StyledEditableText
                                     id={`proj_desc_${item.id}`}
-                                    Tag="p"
+                                    tagName="p"
                                     value={item.description}
                                     onChange={(val) => updatePortfolioItem(index, 'description', val)}
                                     isEditing={isAdmin}
@@ -653,7 +690,7 @@ const App: React.FC = () => {
                                                     }}
                                                     className="aspect-square border-2 border-dashed border-white/10 rounded-xl flex items-center justify-center text-gray-500 hover:text-white hover:border-blue-500 transition-all"
                                                 >
-                                                    <Plus size={20} md:size={24} />
+                                                    <Plus size={24} />
                                                 </button>
                                             )}
                                        </div>
@@ -672,7 +709,7 @@ const App: React.FC = () => {
                   <div>
                       <StyledEditableText 
                         id="contact_heading" 
-                        Tag="h2" 
+                        tagName="h2" 
                         value={data.config.contactHeading || "Let's Create Together"} 
                         onChange={(val) => updateConfig('contactHeading', val)} 
                         isEditing={isAdmin} 
@@ -682,18 +719,18 @@ const App: React.FC = () => {
                       />
                       <div className="flex flex-col gap-4 md:gap-6">
                            <div className="flex items-center gap-3 md:gap-4 group">
-                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all shrink-0"><Phone size={16} md:size={20} /></div>
-                                <div className="min-w-0"><span className="text-[8px] md:text-xs text-gray-500 uppercase tracking-widest block">Phone</span><StyledEditableText id="contact_phone" Tag="a" value={data.social.phone} onChange={(val) => updateSocial('phone', val)} isEditing={isAdmin} className="text-sm md:text-xl font-light truncate block" customStyle={data.textStyles['contact_phone']} onStyleUpdate={(s) => updateTextStyle('contact_phone', s)} /></div>
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all shrink-0"><Phone size={20} /></div>
+                                <div className="min-w-0"><span className="text-[8px] md:text-xs text-gray-500 uppercase tracking-widest block">Phone</span><StyledEditableText id="contact_phone" tagName="a" value={data.social.phone} onChange={(val) => updateSocial('phone', val)} isEditing={isAdmin} className="text-sm md:text-xl font-light truncate block" customStyle={data.textStyles['contact_phone']} onStyleUpdate={(s) => updateTextStyle('contact_phone', s)} /></div>
                            </div>
                            <div className="flex items-center gap-3 md:gap-4 group">
-                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all shrink-0"><Mail size={16} md:size={20} /></div>
-                                <div className="min-w-0"><span className="text-[8px] md:text-xs text-gray-500 uppercase tracking-widest block">Email</span><StyledEditableText id="contact_email" Tag="a" value={data.social.email} onChange={(val) => updateSocial('email', val)} isEditing={isAdmin} className="text-sm md:text-xl font-light truncate block" customStyle={data.textStyles['contact_email']} onStyleUpdate={(s) => updateTextStyle('contact_email', s)} /></div>
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all shrink-0"><Mail size={20} /></div>
+                                <div className="min-w-0"><span className="text-[8px] md:text-xs text-gray-500 uppercase tracking-widest block">Email</span><StyledEditableText id="contact_email" tagName="a" value={data.social.email} onChange={(val) => updateSocial('email', val)} isEditing={isAdmin} className="text-sm md:text-xl font-light truncate block" customStyle={data.textStyles['contact_email']} onStyleUpdate={(s) => updateTextStyle('contact_email', s)} /></div>
                            </div>
                       </div>
                   </div>
                   <div className="flex flex-col justify-end items-center md:items-end">
                        <div className="flex gap-4">
-                            <a href={data.social.facebook} target="_blank" rel="noreferrer" className="w-12 h-12 md:w-16 md:h-16 border border-white/20 flex items-center justify-center hover:bg-blue-600 hover:border-transparent transition-all"><Facebook size={20} md:size={24} /></a>
+                            <a href={data.social.facebook} target="_blank" rel="noreferrer" className="w-12 h-12 md:w-16 md:h-16 border border-white/20 flex items-center justify-center hover:bg-blue-600 hover:border-transparent transition-all"><Facebook size={24} /></a>
                             <a href={data.social.tiktok} target="_blank" rel="noreferrer" className="w-12 h-12 md:w-16 md:h-16 border border-white/20 flex items-center justify-center hover:bg-white hover:text-black hover:border-transparent transition-all"><TikTokIcon className="text-xl md:text-2xl" /></a>
                        </div>
                        {isAdmin && (

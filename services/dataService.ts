@@ -21,6 +21,8 @@ try {
 const DEFAULT_DATA: ProfileData = {
   logoText: "TQ.",
   logoImageUrl: "", 
+  thumbnailUrl: "https://images.unsplash.com/photo-1551218808-94e220e084d2?auto=format&fit=crop&w=1200&h=630&q=80",
+  faviconUrl: "https://placehold.co/32x32/000000/FFFFFF/png?text=TQ",
   name: "Trần Thiên Quý",
   role: "Event Producer",
   dob: "08/11/1998",
@@ -125,7 +127,9 @@ const mergeData = (loaded: any): ProfileData => {
         ...loaded,
         highlights: migratedHighlights,
         config: migratedConfig,
-        textStyles: loaded.textStyles || {} 
+        textStyles: loaded.textStyles || {},
+        thumbnailUrl: loaded.thumbnailUrl || DEFAULT_DATA.thumbnailUrl,
+        faviconUrl: loaded.faviconUrl || DEFAULT_DATA.faviconUrl
     };
 };
 
