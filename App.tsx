@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Phone, Facebook, Settings, LogOut, X, Save, RotateCcw, Play, ArrowRight, Move, MousePointer2, ExternalLink, ArrowLeftRight, Trash2, Link as LinkIcon, Cloud, CheckCircle2, Download, Upload, Edit, Loader2, Plus, ArrowUpRight, MousePointer, Award, Star, Zap, Info, Briefcase } from 'lucide-react';
 import { ProfileData, PortfolioItem, HighlightItem, NavItem, CustomTextStyle } from './types';
@@ -592,7 +593,16 @@ const App: React.FC = () => {
         <section id="contact" className="mt-32 pt-20 border-t border-white/10 cursor-auto">
              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                   <div>
-                      <h2 className="text-4xl font-heading mb-8">Let's Create Together</h2>
+                      <StyledEditableText 
+                        id="contact_heading" 
+                        Tag="h2" 
+                        value={data.config.contactHeading || "Let's Create Together"} 
+                        onChange={(val) => updateConfig('contactHeading', val)} 
+                        isEditing={isAdmin} 
+                        className="text-4xl font-heading mb-8" 
+                        customStyle={data.textStyles['contact_heading']} 
+                        onStyleUpdate={(s) => updateTextStyle('contact_heading', s)} 
+                      />
                       <div className="flex flex-col gap-6">
                            <div className="flex items-center gap-4 group cursor-pointer">
                                 <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all"><Phone size={20} /></div>

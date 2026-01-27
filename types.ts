@@ -39,6 +39,7 @@ export interface SiteConfig {
   labelIntro: string;
   labelHighlights: string;
   labelQuote: string;
+  contactHeading: string;
   // Cursor Customization
   cursorSize: number;
   cursorGlowSize: number;

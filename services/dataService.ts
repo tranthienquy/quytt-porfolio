@@ -95,6 +95,7 @@ const DEFAULT_DATA: ProfileData = {
     labelIntro: "INTRODUCTION",
     labelHighlights: "GRID_LAYOUT",
     labelQuote: "ART_DIRECTION",
+    contactHeading: "Let's Create Together",
     cursorSize: 24,
     cursorGlowSize: 120
   },
@@ -115,7 +116,8 @@ const mergeData = (loaded: any): ProfileData => {
         ...(loaded.config || {}),
         navItems: loaded.config?.navItems || DEFAULT_DATA.config.navItems,
         cursorSize: loaded.config?.cursorSize || DEFAULT_DATA.config.cursorSize,
-        cursorGlowSize: loaded.config?.cursorGlowSize || DEFAULT_DATA.config.cursorGlowSize
+        cursorGlowSize: loaded.config?.cursorGlowSize || DEFAULT_DATA.config.cursorGlowSize,
+        contactHeading: loaded.config?.contactHeading || DEFAULT_DATA.config.contactHeading
     };
 
     return { 
