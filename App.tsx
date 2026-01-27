@@ -20,8 +20,79 @@ const getYouTubeId = (url: string) => {
 };
 
 /**
+ * Preloader GenZ Style
+ */
+const Preloader = ({ onComplete }: { onComplete: () => void }) => {
+    const [progress, setProgress] = useState(0);
+    const [statusIndex, setStatusIndex] = useState(0);
+    const statuses = [
+        "Initializing vibes...",
+        "Checking mic 1, 2, 3...",
+        "Setting up the stage...",
+        "Cooking some magic...",
+        "Đang 'wow' một tí...",
+        "Gần xong rồi nè...",
+        "Ready to serve!"
+    ];
+
+    useEffect(() => {
+        const statusInterval = setInterval(() => {
+            setStatusIndex(prev => (prev + 1) % statuses.length);
+        }, 400);
+
+        const progressInterval = setInterval(() => {
+            setProgress(prev => {
+                if (prev >= 100) {
+                    clearInterval(progressInterval);
+                    clearInterval(statusInterval);
+                    setTimeout(onComplete, 500);
+                    return 100;
+                }
+                return prev + Math.floor(Math.random() * 5) + 1;
+            });
+        }, 40);
+
+        return () => {
+            clearInterval(statusInterval);
+            clearInterval(progressInterval);
+        };
+    }, []);
+
+    return (
+        <div className="fixed inset-0 z-[10000] bg-[#050505] flex flex-col items-center justify-center p-6 select-none">
+            <div className="w-full max-w-md space-y-8">
+                <div className="space-y-2 overflow-hidden">
+                    <div className="flex justify-between items-end">
+                        <h2 className="text-white font-black text-6xl md:text-8xl tracking-tighter italic animate-pulse">
+                            {progress}%
+                        </h2>
+                    </div>
+                    <div className="h-[2px] w-full bg-white/5 relative overflow-hidden">
+                        <div 
+                            className="h-full bg-gradient-to-r from-[#b0f279] via-[#2dd4bf] to-[#00e5ff] transition-all duration-300 ease-out"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+                </div>
+                
+                <div className="flex flex-col gap-1">
+                    <div className="text-blue-500 font-mono text-[10px] md:text-xs uppercase tracking-[0.3em] h-4">
+                        {statuses[statusIndex]}
+                    </div>
+                    <div className="text-gray-600 text-[10px] md:text-xs uppercase tracking-[0.1em]">
+                        Trần Thiên Quý / Event Producer / Portfolio 2024
+                    </div>
+                </div>
+            </div>
+
+            {/* Background elements */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-blue-500/10 blur-[120px] rounded-full pointer-events-none"></div>
+        </div>
+    );
+};
+
+/**
  * Component hiển thị con trỏ chuột tỏa sáng.
- * Kích thước được lấy trực tiếp từ config để thay đổi thời gian thực.
  */
 const GlowingCursor = ({ size, glowSize }: { size: number, glowSize: number }) => {
     const cursorRef = useRef<HTMLDivElement>(null);
@@ -94,9 +165,13 @@ const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [showCursorSettings, setShowCursorSettings] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    getData().then(loadedData => setData(loadedData));
+    getData().then(loadedData => {
+        setData(loadedData);
+        // We let the Preloader handle the duration
+    });
     if (firebaseConfig.projectId && firebaseConfig.projectId !== "PROJECT_ID") setIsFirebaseReady(true);
   }, []);
 
@@ -254,6 +329,8 @@ const App: React.FC = () => {
 
   return (
     <div className={`min-h-screen bg-[#050505] text-[#EAEAEA] font-body relative overflow-x-hidden ${isAdmin ? '' : 'cursor-none md:cursor-none'}`}>
+      {isLoading && <Preloader onComplete={() => setIsLoading(false)} />}
+      
       {!isAdmin && <GlowingCursor size={data.config.cursorSize} glowSize={data.config.cursorGlowSize} />}
 
       {showLogin && (
@@ -337,7 +414,7 @@ const App: React.FC = () => {
         </div>
       </nav>
 
-      <div className="max-w-[1400px] mx-auto px-4 md:px-8 pt-24 md:pt-32 pb-20 relative z-10">
+      <div className={`max-w-[1400px] mx-auto px-4 md:px-8 pt-24 md:pt-32 pb-20 relative z-10 transition-opacity duration-1000 ${isLoading ? 'opacity-0' : 'opacity-100'}`}>
         
         {/* Intro Section */}
         <section id="home" className="flex flex-col lg:grid lg:grid-cols-12 gap-6 mt-4 md:mt-10 items-stretch">
