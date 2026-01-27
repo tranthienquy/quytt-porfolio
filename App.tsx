@@ -51,7 +51,7 @@ const GlowingCursor = ({ size, glowSize }: { size: number, glowSize: number }) =
     }, []);
 
     return (
-        <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden">
+        <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden hidden md:block">
             <div 
                 ref={glowRef} 
                 className="absolute top-0 left-0 bg-white rounded-full opacity-50 mix-blend-screen pointer-events-none will-change-transform transition-[width,height] duration-300" 
@@ -253,7 +253,7 @@ const App: React.FC = () => {
   );
 
   return (
-    <div className={`min-h-screen bg-[#050505] text-[#EAEAEA] font-body relative overflow-x-hidden ${isAdmin ? '' : 'cursor-none'}`}>
+    <div className={`min-h-screen bg-[#050505] text-[#EAEAEA] font-body relative overflow-x-hidden ${isAdmin ? '' : 'cursor-none md:cursor-none'}`}>
       {!isAdmin && <GlowingCursor size={data.config.cursorSize} glowSize={data.config.cursorGlowSize} />}
 
       {showLogin && (
@@ -270,11 +270,11 @@ const App: React.FC = () => {
       )}
 
       {/* Navigation Bar */}
-      <nav className="fixed top-0 w-full z-40 px-4 md:px-8 py-6 flex flex-col md:flex-row justify-between items-center md:items-start bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none">
-        <div className="pointer-events-auto flex flex-col items-center md:items-start mb-4 md:mb-0 cursor-auto">
+      <nav className="fixed top-0 w-full z-40 px-4 md:px-8 py-4 md:py-6 flex flex-row justify-between items-center bg-gradient-to-b from-black via-black/80 to-transparent pointer-events-none">
+        <div className="pointer-events-auto flex flex-col items-start cursor-auto">
           <div className="flex flex-col gap-1 relative group/navLogo">
             {(data.logoImageUrl || isAdmin) && (
-                 <div className="w-20 md:w-32 mb-1">
+                 <div className="w-16 md:w-32 mb-1">
                      {data.logoImageUrl ? (
                          <div className="relative">
                             <img src={data.logoImageUrl} alt="Logo" className="w-full h-auto object-contain" />
@@ -289,31 +289,31 @@ const App: React.FC = () => {
             )}
             {!data.logoImageUrl && (
                 <div className="inline-block p-1">
-                    <StyledEditableText id="logo_text" Tag="div" value={data.logoText || "TQ."} onChange={(val) => updateField('logoText', val)} isEditing={isAdmin} className="text-2xl font-black tracking-tighter leading-none bg-white text-black px-1" customStyle={data.textStyles['logo_text']} onStyleUpdate={(s) => updateTextStyle('logo_text', s)} />
+                    <StyledEditableText id="logo_text" Tag="div" value={data.logoText || "TQ."} onChange={(val) => updateField('logoText', val)} isEditing={isAdmin} className="text-xl md:text-2xl font-black tracking-tighter leading-none bg-white text-black px-1" customStyle={data.textStyles['logo_text']} onStyleUpdate={(s) => updateTextStyle('logo_text', s)} />
                 </div>
             )}
           </div>
-          <div className="text-[10px] tracking-widest mt-1 opacity-50"><EditableText Tag="span" value={data.config.versionText || "PORTFOLIO V.1.0"} onChange={(val) => updateConfig('versionText', val)} isEditing={isAdmin} /></div>
+          <div className="hidden sm:block text-[8px] md:text-[10px] tracking-widest mt-1 opacity-50"><EditableText Tag="span" value={data.config.versionText || "PORTFOLIO V.1.0"} onChange={(val) => updateConfig('versionText', val)} isEditing={isAdmin} /></div>
         </div>
         
-        <div className="flex flex-col md:flex-row items-center gap-4 pointer-events-auto cursor-auto">
-            <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full p-1.5 shadow-lg">
+        <div className="flex items-center gap-2 md:gap-4 pointer-events-auto cursor-auto">
+            <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-full p-1 shadow-lg overflow-x-auto no-scrollbar">
                 {data.config.navItems.map((item, index) => (
-                    <div key={index} className="relative group/navItem">
-                        <button onClick={() => scrollToSection(item.targetId)} className={`px-4 py-1.5 rounded-full text-xs md:text-sm font-medium transition-all duration-300 ${activeSection === item.targetId ? 'bg-white text-black shadow-white/20 shadow-lg scale-105' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
-                            {isAdmin ? <input value={item.label} onChange={(e) => updateNavItem(index, 'label', e.target.value)} className="bg-transparent text-center w-16 focus:outline-none" onClick={(e) => e.stopPropagation()} /> : item.label}
+                    <div key={index} className="relative group/navItem shrink-0">
+                        <button onClick={() => scrollToSection(item.targetId)} className={`px-2.5 md:px-4 py-1.5 rounded-full text-[10px] md:text-sm font-medium transition-all duration-300 ${activeSection === item.targetId ? 'bg-white text-black shadow-white/20 shadow-lg scale-105' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}>
+                            {isAdmin ? <input value={item.label} onChange={(e) => updateNavItem(index, 'label', e.target.value)} className="bg-transparent text-center w-12 md:w-16 focus:outline-none" onClick={(e) => e.stopPropagation()} /> : item.label}
                         </button>
                         {isAdmin && <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-[#222] border border-white/20 p-2 rounded shadow-xl opacity-0 group-hover/navItem:opacity-100 pointer-events-none group-hover/navItem:pointer-events-auto transition-opacity z-50 flex gap-2 items-center min-w-[150px]"><span className="text-[10px] text-gray-500">ID:</span><input value={item.targetId} onChange={(e) => updateNavItem(index, 'targetId', e.target.value)} className="bg-black/50 text-xs text-blue-400 w-full p-1 rounded border border-white/10" /></div>}
                     </div>
                 ))}
             </div>
-            <div>
+            <div className="shrink-0">
             {!isAdmin ? (
                 <button onClick={() => setShowLogin(true)} className="opacity-30 hover:opacity-100 transition-opacity p-2 border border-transparent hover:border-white/20 rounded-full cursor-pointer" title="Admin Access"><Settings size={14} /></button>
             ) : (
-                <div className="flex gap-4 bg-black/80 backdrop-blur border border-white/10 p-1.5 rounded-lg shadow-xl items-center flex-wrap justify-end">
+                <div className="flex gap-2 md:gap-4 bg-black/80 backdrop-blur border border-white/10 p-1 rounded-lg shadow-xl items-center flex-wrap justify-end">
                     <div className="relative">
-                        <button onClick={() => setShowCursorSettings(!showCursorSettings)} className={`p-2 rounded transition-colors ${showCursorSettings ? 'bg-blue-600' : 'hover:bg-white/10'}`} title="Cursor Settings"><MousePointer size={16} /></button>
+                        <button onClick={() => setShowCursorSettings(!showCursorSettings)} className={`p-1.5 md:p-2 rounded transition-colors ${showCursorSettings ? 'bg-blue-600' : 'hover:bg-white/10'}`} title="Cursor Settings"><MousePointer size={14} md:size={16} /></button>
                         {showCursorSettings && (
                             <div className="absolute top-full mt-2 right-0 bg-[#1a1a1a] border border-white/20 p-4 rounded shadow-2xl w-48 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
                                 <div className="space-y-1">
@@ -328,66 +328,66 @@ const App: React.FC = () => {
                             </div>
                         )}
                     </div>
-                    {isFirebaseReady && <a href={`https://console.firebase.google.com/project/${firebaseConfig.projectId}/storage/rules`} target="_blank" rel="noreferrer" className="hidden md:flex items-center gap-1 px-2 py-1 text-[10px] text-green-400 border border-green-500/30 rounded bg-green-900/20 mr-2 hover:bg-green-900/40 transition-colors"><CheckCircle2 size={12} /><span>Cloud Ready</span></a>}
-                    <button onClick={() => setIsAdmin(false)} className="p-2 hover:bg-white/10 rounded" title="Logout"><LogOut size={16} /></button>
-                    <button onClick={handleSave} className="flex items-center gap-1 bg-green-700 hover:bg-green-600 text-white px-3 py-1.5 rounded font-bold text-xs" disabled={isSaving}>{isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}{isSaving ? 'SAVING...' : 'SAVE'}</button>
+                    {isFirebaseReady && <a href={`https://console.firebase.google.com/project/${firebaseConfig.projectId}/storage/rules`} target="_blank" rel="noreferrer" className="hidden lg:flex items-center gap-1 px-2 py-1 text-[10px] text-green-400 border border-green-500/30 rounded bg-green-900/20 mr-1 hover:bg-green-900/40 transition-colors"><CheckCircle2 size={12} /><span>Cloud Ready</span></a>}
+                    <button onClick={() => setIsAdmin(false)} className="p-1.5 md:p-2 hover:bg-white/10 rounded" title="Logout"><LogOut size={14} md:size={16} /></button>
+                    <button onClick={handleSave} className="flex items-center gap-1 bg-green-700 hover:bg-green-600 text-white px-2 md:px-3 py-1 md:py-1.5 rounded font-bold text-[10px] md:text-xs" disabled={isSaving}>{isSaving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}{isSaving ? '...' : 'SAVE'}</button>
                 </div>
             )}
             </div>
         </div>
       </nav>
 
-      <div className="max-w-[1400px] mx-auto px-4 md:px-8 pt-32 pb-20 relative z-10">
+      <div className="max-w-[1400px] mx-auto px-4 md:px-8 pt-24 md:pt-32 pb-20 relative z-10">
         
         {/* Intro Section */}
-        <section id="home" className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-[40px] min-h-[350px] items-stretch">
-            <div className="lg:col-span-4 flex flex-col h-full">
-                 <SelectionFrame className="flex-1 min-h-[300px] p-2 bg-[#0a0a0a]" label={<EditableText value={data.config.labelPortrait || "PORTRAIT_AVATAR"} onChange={val => updateConfig('labelPortrait', val)} isEditing={isAdmin} Tag="span" />}>
+        <section id="home" className="flex flex-col lg:grid lg:grid-cols-12 gap-6 mt-4 md:mt-10 items-stretch">
+            <div className="lg:col-span-4 flex flex-col w-full">
+                 <SelectionFrame className="flex-1 aspect-[4/5] lg:aspect-auto min-h-[300px] lg:min-h-[400px] p-2 bg-[#0a0a0a]" label={<EditableText value={data.config.labelPortrait || "PORTRAIT_AVATAR"} onChange={val => updateConfig('labelPortrait', val)} isEditing={isAdmin} Tag="span" />}>
                     <EditImage src={data.avatarUrl} alt="Profile" onImageChange={(url) => updateField('avatarUrl', url)} isEditing={isAdmin} className="w-full h-full object-cover grayscale contrast-125 hover:grayscale-0 transition-all duration-700" />
                  </SelectionFrame>
             </div>
-            <div className="lg:col-span-8 flex flex-col h-full">
-                <SelectionFrame className="flex-1 flex flex-col justify-center p-8 md:p-12 relative bg-[#080808]" label={<EditableText value={data.config.labelIntro || "INTRODUCTION"} onChange={val => updateConfig('labelIntro', val)} isEditing={isAdmin} Tag="span" />}>
+            <div className="lg:col-span-8 flex flex-col w-full">
+                <SelectionFrame className="flex-1 flex flex-col justify-center p-6 md:p-12 lg:p-16 relative bg-[#080808]" label={<EditableText value={data.config.labelIntro || "INTRODUCTION"} onChange={val => updateConfig('labelIntro', val)} isEditing={isAdmin} Tag="span" />}>
                     <div className="max-w-3xl cursor-auto">
-                        <StyledEditableText id="hero_role" Tag="h3" value={data.role} onChange={(val) => updateField('role', val)} isEditing={isAdmin} className="text-blue-500 tracking-[0.2em] text-sm md:text-base font-medium mb-4 flex items-center gap-4 before:content-[''] before:w-12 before:h-[1px] before:bg-blue-500 after:content-[''] after:w-12 after:h-[1px] after:bg-blue-500" customStyle={data.textStyles['hero_role']} onStyleUpdate={(s) => updateTextStyle('hero_role', s)} />
-                        <StyledEditableText id="hero_name" Tag="h1" value={data.name} onChange={(val) => updateField('name', val)} isEditing={isAdmin} className="font-inter text-6xl md:text-8xl lg:text-9xl mb-16 text-transparent bg-clip-text bg-gradient-to-r from-[#b0f279] via-[#2dd4bf] to-[#00e5ff] leading-normal py-4 font-black uppercase tracking-tighter" customStyle={data.textStyles['hero_name']} onStyleUpdate={(s) => updateTextStyle('hero_name', s)} />
-                        <div className="text-gray-400 font-light text-lg md:text-xl leading-relaxed max-w-2xl"><StyledEditableText id="hero_bio" Tag="p" value={data.bioContent} onChange={(val) => updateField('bioContent', val)} isEditing={isAdmin} multiline customStyle={data.textStyles['hero_bio']} onStyleUpdate={(s) => updateTextStyle('hero_bio', s)} /></div>
+                        <StyledEditableText id="hero_role" Tag="h3" value={data.role} onChange={(val) => updateField('role', val)} isEditing={isAdmin} className="text-blue-500 tracking-[0.2em] text-[10px] md:text-base font-medium mb-3 md:mb-4 flex items-center gap-2 md:gap-4 before:content-[''] before:w-6 md:before:w-12 before:h-[1px] before:bg-blue-500 after:content-[''] after:w-6 md:after:w-12 after:h-[1px] after:bg-blue-500" customStyle={data.textStyles['hero_role']} onStyleUpdate={(s) => updateTextStyle('hero_role', s)} />
+                        <StyledEditableText id="hero_name" Tag="h1" value={data.name} onChange={(val) => updateField('name', val)} isEditing={isAdmin} className="font-inter text-4xl sm:text-5xl md:text-8xl lg:text-9xl mb-8 md:mb-16 text-transparent bg-clip-text bg-gradient-to-r from-[#b0f279] via-[#2dd4bf] to-[#00e5ff] leading-[1.1] md:leading-normal py-2 md:py-4 font-black uppercase tracking-tighter" customStyle={data.textStyles['hero_name']} onStyleUpdate={(s) => updateTextStyle('hero_name', s)} />
+                        <div className="text-gray-400 font-light text-sm md:text-xl leading-relaxed max-w-2xl"><StyledEditableText id="hero_bio" Tag="p" value={data.bioContent} onChange={(val) => updateField('bioContent', val)} isEditing={isAdmin} multiline customStyle={data.textStyles['hero_bio']} onStyleUpdate={(s) => updateTextStyle('hero_bio', s)} /></div>
                     </div>
                 </SelectionFrame>
             </div>
         </section>
 
-        {/* Highlights Section - UPDATED TO ROUNDED CARD STYLE */}
+        {/* Highlights Section */}
         <section id="highlights" className="mt-6">
-            <SelectionFrame className="p-8 md:p-12 bg-[#080808]" label={<EditableText value={data.config.labelHighlights || "GRID_LAYOUT"} onChange={val => updateConfig('labelHighlights', val)} isEditing={isAdmin} Tag="span" />}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 cursor-auto">
+            <SelectionFrame className="p-4 md:p-12 bg-[#080808]" label={<EditableText value={data.config.labelHighlights || "GRID_LAYOUT"} onChange={val => updateConfig('labelHighlights', val)} isEditing={isAdmin} Tag="span" />}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 cursor-auto">
                      {data.highlights.map((highlight, index) => (
-                        <div key={index} className="group relative bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] p-6 flex items-center gap-6 hover:border-blue-500/30 transition-all duration-500 shadow-2xl">
+                        <div key={index} className="group relative bg-[#0a0a0a] border border-white/5 rounded-2xl md:rounded-[2.5rem] p-4 md:p-6 flex items-center gap-4 md:gap-6 hover:border-blue-500/30 transition-all duration-500 shadow-2xl">
                              
                              {/* Left Icon Part */}
-                             <div className="shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-500/5 flex items-center justify-center relative">
+                             <div className="shrink-0 w-12 h-12 md:w-20 md:h-20 rounded-full bg-blue-500/5 flex items-center justify-center relative">
                                 <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                <Zap size={24} className="text-cyan-400 relative z-10" />
+                                <Zap size={18} md:size={24} className="text-cyan-400 relative z-10" />
                              </div>
 
                              {/* Right Text Part */}
-                             <div className="flex-1">
-                                <div className="mb-1">
+                             <div className="flex-1 min-w-0">
+                                <div className="mb-0.5 md:mb-1">
                                     <StyledEditableText 
                                         id={`highlight_label_${index}`} 
                                         Tag="span" 
                                         value={highlight.label || "HIGHLIGHT"} 
                                         onChange={(val) => updateHighlightField(index, 'label', val)} 
                                         isEditing={isAdmin} 
-                                        className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-[0.2em]" 
+                                        className="text-[8px] md:text-xs text-gray-500 font-bold uppercase tracking-[0.2em]" 
                                         customStyle={data.textStyles[`highlight_label_${index}`]} 
                                         onStyleUpdate={(s) => updateTextStyle(`highlight_label_${index}`, s)} 
                                     />
                                 </div>
                                 <div className="flex flex-col">
                                     {highlight.url && !isAdmin ? (
-                                        <a href={highlight.url} target="_blank" rel="noopener noreferrer" className="text-white font-bold text-base md:text-xl leading-snug hover:text-cyan-400 transition-colors">
-                                            {highlight.text} <ExternalLink size={14} className="inline ml-1 opacity-50"/>
+                                        <a href={highlight.url} target="_blank" rel="noopener noreferrer" className="text-white font-bold text-sm md:text-xl leading-snug hover:text-cyan-400 transition-colors truncate">
+                                            {highlight.text} <ExternalLink size={12} className="inline ml-1 opacity-50"/>
                                         </a>
                                     ) : (
                                         <StyledEditableText 
@@ -397,7 +397,7 @@ const App: React.FC = () => {
                                             onChange={(val) => updateHighlightField(index, 'text', val)} 
                                             isEditing={isAdmin} 
                                             multiline 
-                                            className="text-white font-bold text-base md:text-xl leading-snug" 
+                                            className="text-white font-bold text-sm md:text-xl leading-snug break-words" 
                                             customStyle={data.textStyles[`highlight_text_${index}`]} 
                                             onStyleUpdate={(s) => updateTextStyle(`highlight_text_${index}`, s)} 
                                         />
@@ -405,13 +405,13 @@ const App: React.FC = () => {
                                 </div>
                                 {isAdmin && (
                                     <div className="mt-2 flex items-center gap-2">
-                                        <LinkIcon size={12} className="text-blue-500" />
+                                        <LinkIcon size={12} className="text-blue-500 shrink-0" />
                                         <input 
                                             type="text" 
                                             value={highlight.url || ""} 
                                             onChange={(e) => updateHighlightField(index, 'url', e.target.value)} 
                                             placeholder="Paste URL..." 
-                                            className="bg-black/50 border border-white/10 text-[10px] p-1 w-full text-blue-300 focus:border-blue-500 focus:outline-none rounded" 
+                                            className="bg-black/50 border border-white/10 text-[8px] md:text-[10px] p-1 w-full text-blue-300 focus:border-blue-500 focus:outline-none rounded" 
                                         />
                                     </div>
                                 )}
@@ -419,10 +419,10 @@ const App: React.FC = () => {
 
                              {/* Admin Controls */}
                              {isAdmin && (
-                                <div className="absolute top-4 right-4 flex gap-1 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="absolute top-2 right-2 md:top-4 md:right-4 flex gap-1 z-20 md:opacity-0 group-hover:opacity-100 transition-opacity">
                                     <MoveButton direction="up" onClick={() => moveHighlight(index, 'up')} disabled={index === 0} />
                                     <MoveButton direction="down" onClick={() => moveHighlight(index, 'down')} disabled={index === data.highlights.length - 1} />
-                                    <button onClick={() => deleteHighlight(index)} className="p-1.5 bg-red-600/80 rounded-full text-white shadow-lg"><Trash2 size={12}/></button>
+                                    <button onClick={() => deleteHighlight(index)} className="p-1 md:p-1.5 bg-red-600/80 rounded-full text-white shadow-lg"><Trash2 size={10} md:size={12}/></button>
                                 </div>
                              )}
                         </div>
@@ -430,10 +430,10 @@ const App: React.FC = () => {
                      {isAdmin && (
                         <button 
                             onClick={addHighlight} 
-                            className="bg-[#0a0a0a]/50 border-2 border-dashed border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-gray-500 hover:text-white hover:border-blue-500 transition-all p-8"
+                            className="bg-[#0a0a0a]/50 border-2 border-dashed border-white/5 rounded-2xl md:rounded-[2.5rem] flex flex-col items-center justify-center text-gray-500 hover:text-white hover:border-blue-500 transition-all p-6 md:p-8"
                         >
-                            <Plus size={32} />
-                            <span className="mt-2 text-sm uppercase tracking-wider font-bold">Add New Highlight Box</span>
+                            <Plus size={24} md:size={32} />
+                            <span className="mt-2 text-[10px] md:text-sm uppercase tracking-wider font-bold">Add Highlight</span>
                         </button>
                      )}
                 </div>
@@ -442,25 +442,25 @@ const App: React.FC = () => {
 
         {/* Portfolio Section */}
         <section id="work" className="mt-20">
-             <div className="mb-12 border-b border-white/10 pb-4 flex justify-between items-end cursor-auto">
+             <div className="mb-8 md:mb-12 border-b border-white/10 pb-4 flex justify-between items-end cursor-auto">
                   <div>
-                      <StyledEditableText id="work_title_main" Tag="h2" value={data.config.workTitleMain} onChange={(val) => updateConfig('workTitleMain', val)} isEditing={isAdmin} className="text-6xl md:text-8xl font-black text-white leading-none tracking-tighter" customStyle={data.textStyles['work_title_main']} onStyleUpdate={(s) => updateTextStyle('work_title_main', s)} />
-                      <StyledEditableText id="work_title_sub" Tag="span" value={data.config.workTitleSub} onChange={(val) => updateConfig('workTitleSub', val)} isEditing={isAdmin} className="font-heading text-4xl md:text-5xl text-gray-500 block -mt-2 ml-2" customStyle={data.textStyles['work_title_sub']} onStyleUpdate={(s) => updateTextStyle('work_title_sub', s)} />
+                      <StyledEditableText id="work_title_main" Tag="h2" value={data.config.workTitleMain} onChange={(val) => updateConfig('workTitleMain', val)} isEditing={isAdmin} className="text-4xl sm:text-5xl md:text-8xl font-black text-white leading-none tracking-tighter" customStyle={data.textStyles['work_title_main']} onStyleUpdate={(s) => updateTextStyle('work_title_main', s)} />
+                      <StyledEditableText id="work_title_sub" Tag="span" value={data.config.workTitleSub} onChange={(val) => updateConfig('workTitleSub', val)} isEditing={isAdmin} className="font-heading text-2xl md:text-5xl text-gray-500 block -mt-1 md:-mt-2 ml-1 md:ml-2" customStyle={data.textStyles['work_title_sub']} onStyleUpdate={(s) => updateTextStyle('work_title_sub', s)} />
                   </div>
              </div>
 
-             <div className="space-y-40">
+             <div className="space-y-24 md:space-y-40">
                  {data.portfolio.map((item, index) => (
                      <div key={item.id} className="relative group/project cursor-auto">
                          {isAdmin && <DeleteButton onClick={() => deletePortfolioItem(index)} />}
-                         {isAdmin && <div className="absolute -top-10 right-10 flex gap-2"><MoveButton direction="up" onClick={() => movePortfolioItem(index, 'up')} disabled={index === 0} /><MoveButton direction="down" onClick={() => movePortfolioItem(index, 'down')} disabled={index === data.portfolio.length - 1} /></div>}
+                         {isAdmin && <div className="absolute -top-8 right-2 md:right-10 flex gap-2"><MoveButton direction="up" onClick={() => movePortfolioItem(index, 'up')} disabled={index === 0} /><MoveButton direction="down" onClick={() => movePortfolioItem(index, 'down')} disabled={index === data.portfolio.length - 1} /></div>}
 
-                         <div className="flex flex-col lg:flex-row gap-12 items-start">
+                         <div className="flex flex-col lg:flex-row gap-8 md:gap-12 items-start">
                              
                              {/* SIDEBAR LEFT (Logo & Buttons) */}
-                             <div className="lg:w-[320px] shrink-0 w-full space-y-6">
+                             <div className="lg:w-[320px] shrink-0 w-full space-y-4 md:space-y-6">
                                   {/* Project Logo Box */}
-                                  <div className="aspect-square bg-[#0f111a] rounded-2xl border border-white/5 p-8 flex items-center justify-center overflow-hidden shadow-2xl">
+                                  <div className="aspect-square bg-[#0f111a] rounded-2xl border border-white/5 p-6 md:p-8 flex items-center justify-center overflow-hidden shadow-2xl">
                                       <EditImage 
                                         src={item.logoUrl || ''}
                                         alt="Project Logo"
@@ -476,21 +476,21 @@ const App: React.FC = () => {
                                         href={item.projectUrl || '#'} 
                                         target="_blank" 
                                         rel="noopener noreferrer"
-                                        className={`w-full py-4 px-6 bg-[#0a0f1c] hover:bg-[#1a2538] border border-white/10 rounded-xl flex items-center justify-between text-xs font-bold tracking-[0.2em] text-blue-400 group/btn transition-all uppercase ${!item.projectUrl && !isAdmin ? 'pointer-events-none opacity-50' : ''}`}
+                                        className={`w-full py-3 md:py-4 px-4 md:px-6 bg-[#0a0f1c] hover:bg-[#1a2538] border border-white/10 rounded-xl flex items-center justify-between text-[10px] md:text-xs font-bold tracking-[0.2em] text-blue-400 group/btn transition-all uppercase ${!item.projectUrl && !isAdmin ? 'pointer-events-none opacity-50' : ''}`}
                                       >
                                           <span>Visit Project</span>
-                                          <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+                                          <ArrowRight size={14} md:size={16} className="group-hover/btn:translate-x-1 transition-transform" />
                                       </a>
                                       
                                       {isAdmin && (
                                           <div className="p-3 bg-black/50 border border-blue-500/30 rounded-xl space-y-2">
-                                              <span className="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Project Link:</span>
+                                              <span className="text-[8px] md:text-[10px] text-blue-400 font-bold uppercase tracking-widest">Link:</span>
                                               <input 
                                                 type="text" 
                                                 value={item.projectUrl || ''} 
                                                 onChange={(e) => updatePortfolioItem(index, 'projectUrl', e.target.value)} 
-                                                placeholder="Paste Project URL (Hyperlink)..." 
-                                                className="w-full bg-white/5 border border-white/10 p-2 text-[10px] text-white focus:outline-none focus:border-blue-500"
+                                                placeholder="Paste URL..." 
+                                                className="w-full bg-white/5 border border-white/10 p-2 text-[8px] md:text-[10px] text-white focus:outline-none focus:border-blue-500"
                                               />
                                           </div>
                                       )}
@@ -498,7 +498,7 @@ const App: React.FC = () => {
                              </div>
 
                              {/* CONTENT RIGHT */}
-                             <div className="flex-1 w-full space-y-6">
+                             <div className="flex-1 w-full space-y-4 md:space-y-6">
                                   {/* Metadata/Role */}
                                   <StyledEditableText 
                                     id={`proj_role_${item.id}`}
@@ -506,7 +506,7 @@ const App: React.FC = () => {
                                     value={item.role ? `/ ${item.role.split('/').map(r => r.trim()).join(' / ')}` : "/ PROJECT ROLE"}
                                     onChange={(val) => updatePortfolioItem(index, 'role', val)}
                                     isEditing={isAdmin}
-                                    className="text-gray-500 text-[10px] md:text-xs font-bold tracking-[0.3em] uppercase"
+                                    className="text-gray-500 text-[8px] md:text-xs font-bold tracking-[0.3em] uppercase"
                                     customStyle={data.textStyles[`proj_role_${item.id}`]}
                                     onStyleUpdate={(s) => updateTextStyle(`proj_role_${item.id}`, s)}
                                   />
@@ -518,7 +518,7 @@ const App: React.FC = () => {
                                     value={item.title}
                                     onChange={(val) => updatePortfolioItem(index, 'title', val)}
                                     isEditing={isAdmin}
-                                    className="font-body text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight"
+                                    className="font-body text-2xl md:text-5xl lg:text-6xl font-bold text-white leading-tight"
                                     customStyle={data.textStyles[`proj_title_${item.id}`]}
                                     onStyleUpdate={(s) => updateTextStyle(`proj_title_${item.id}`, s)}
                                   />
@@ -530,25 +530,25 @@ const App: React.FC = () => {
                                     value={item.description}
                                     onChange={(val) => updatePortfolioItem(index, 'description', val)}
                                     isEditing={isAdmin}
-                                    className="text-gray-400 leading-relaxed font-light text-lg md:text-xl max-w-4xl"
+                                    className="text-gray-400 leading-relaxed font-light text-sm md:text-xl max-w-4xl"
                                     multiline
                                     customStyle={data.textStyles[`proj_desc_${item.id}`]}
                                     onStyleUpdate={(s) => updateTextStyle(`proj_desc_${item.id}`, s)}
                                   />
 
                                   {/* Video Player */}
-                                  <div className="aspect-video bg-[#0a0a0a] rounded-2xl overflow-hidden border border-white/5 relative shadow-2xl my-10">
+                                  <div className="aspect-video bg-[#0a0a0a] rounded-2xl overflow-hidden border border-white/5 relative shadow-2xl my-6 md:my-10">
                                        {getYouTubeId(item.videoUrl || '') ? (
                                             <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${getYouTubeId(item.videoUrl || '')}?rel=0&modestbranding=1&playsinline=1`} title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen className="absolute inset-0 z-10 w-full h-full"></iframe>
                                        ) : (
                                             <EditImage src={item.imageUrl} alt={item.title} onImageChange={(url) => updatePortfolioItem(index, 'imageUrl', url)} isEditing={isAdmin} className="w-full h-full object-cover" />
                                        )}
-                                       {isAdmin && <div className="absolute top-0 right-0 z-50 p-2 bg-black/90 w-full border-b border-blue-500/30"><span className="text-[10px] text-blue-400 block mb-1 font-bold">YOUTUBE URL:</span><input type="text" value={item.videoUrl || ''} onChange={(e) => updatePortfolioItem(index, 'videoUrl', e.target.value)} placeholder="Paste Youtube Link..." className="w-full bg-white/10 text-xs border border-white/20 p-1 text-white focus:outline-none focus:border-blue-500" /></div>}
+                                       {isAdmin && <div className="absolute top-0 right-0 z-50 p-2 bg-black/90 w-full border-b border-blue-500/30 flex flex-col md:flex-row gap-2"><span className="text-[8px] md:text-[10px] text-blue-400 font-bold shrink-0">YOUTUBE:</span><input type="text" value={item.videoUrl || ''} onChange={(e) => updatePortfolioItem(index, 'videoUrl', e.target.value)} placeholder="Link..." className="w-full bg-white/10 text-[8px] md:text-xs border border-white/20 p-1 text-white focus:outline-none focus:border-blue-500" /></div>}
                                   </div>
 
                                   {/* Gallery Grid */}
-                                  <div className="pt-6">
-                                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                  <div className="pt-4 md:pt-6">
+                                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                                             {(item.gallery || []).map((url, gIdx) => (
                                                 <div key={gIdx} className="aspect-square rounded-xl overflow-hidden border border-white/5 group/gall relative">
                                                      <EditImage 
@@ -576,7 +576,7 @@ const App: React.FC = () => {
                                                     }}
                                                     className="aspect-square border-2 border-dashed border-white/10 rounded-xl flex items-center justify-center text-gray-500 hover:text-white hover:border-blue-500 transition-all"
                                                 >
-                                                    <Plus size={24} />
+                                                    <Plus size={20} md:size={24} />
                                                 </button>
                                             )}
                                        </div>
@@ -590,8 +590,8 @@ const App: React.FC = () => {
         </section>
 
         {/* Contact Section */}
-        <section id="contact" className="mt-32 pt-20 border-t border-white/10 cursor-auto">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <section id="contact" className="mt-24 md:mt-32 pt-12 md:pt-20 border-t border-white/10 cursor-auto">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12">
                   <div>
                       <StyledEditableText 
                         id="contact_heading" 
@@ -599,35 +599,35 @@ const App: React.FC = () => {
                         value={data.config.contactHeading || "Let's Create Together"} 
                         onChange={(val) => updateConfig('contactHeading', val)} 
                         isEditing={isAdmin} 
-                        className="text-4xl font-heading mb-8" 
+                        className="text-2xl md:text-4xl font-heading mb-6 md:mb-8" 
                         customStyle={data.textStyles['contact_heading']} 
                         onStyleUpdate={(s) => updateTextStyle('contact_heading', s)} 
                       />
-                      <div className="flex flex-col gap-6">
-                           <div className="flex items-center gap-4 group cursor-pointer">
-                                <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all"><Phone size={20} /></div>
-                                <div><span className="text-xs text-gray-500 uppercase tracking-widest block">Phone</span><StyledEditableText id="contact_phone" Tag="a" value={data.social.phone} onChange={(val) => updateSocial('phone', val)} isEditing={isAdmin} className="text-xl font-light" customStyle={data.textStyles['contact_phone']} onStyleUpdate={(s) => updateTextStyle('contact_phone', s)} /></div>
+                      <div className="flex flex-col gap-4 md:gap-6">
+                           <div className="flex items-center gap-3 md:gap-4 group">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all shrink-0"><Phone size={16} md:size={20} /></div>
+                                <div className="min-w-0"><span className="text-[8px] md:text-xs text-gray-500 uppercase tracking-widest block">Phone</span><StyledEditableText id="contact_phone" Tag="a" value={data.social.phone} onChange={(val) => updateSocial('phone', val)} isEditing={isAdmin} className="text-sm md:text-xl font-light truncate block" customStyle={data.textStyles['contact_phone']} onStyleUpdate={(s) => updateTextStyle('contact_phone', s)} /></div>
                            </div>
-                           <div className="flex items-center gap-4 group cursor-pointer">
-                                <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all"><Mail size={20} /></div>
-                                <div><span className="text-xs text-gray-500 uppercase tracking-widest block">Email</span><StyledEditableText id="contact_email" Tag="a" value={data.social.email} onChange={(val) => updateSocial('email', val)} isEditing={isAdmin} className="text-xl font-light" customStyle={data.textStyles['contact_email']} onStyleUpdate={(s) => updateTextStyle('contact_email', s)} /></div>
+                           <div className="flex items-center gap-3 md:gap-4 group">
+                                <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/20 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all shrink-0"><Mail size={16} md:size={20} /></div>
+                                <div className="min-w-0"><span className="text-[8px] md:text-xs text-gray-500 uppercase tracking-widest block">Email</span><StyledEditableText id="contact_email" Tag="a" value={data.social.email} onChange={(val) => updateSocial('email', val)} isEditing={isAdmin} className="text-sm md:text-xl font-light truncate block" customStyle={data.textStyles['contact_email']} onStyleUpdate={(s) => updateTextStyle('contact_email', s)} /></div>
                            </div>
                       </div>
                   </div>
-                  <div className="flex flex-col justify-end items-start md:items-end">
+                  <div className="flex flex-col justify-end items-center md:items-end">
                        <div className="flex gap-4">
-                            <a href={data.social.facebook} target="_blank" rel="noreferrer" className="w-16 h-16 border border-white/20 flex items-center justify-center hover:bg-blue-600 hover:border-transparent transition-all"><Facebook size={24} /></a>
-                            <a href={data.social.tiktok} target="_blank" rel="noreferrer" className="w-16 h-16 border border-white/20 flex items-center justify-center hover:bg-black hover:border-white transition-all"><TikTokIcon className="text-2xl" /></a>
+                            <a href={data.social.facebook} target="_blank" rel="noreferrer" className="w-12 h-12 md:w-16 md:h-16 border border-white/20 flex items-center justify-center hover:bg-blue-600 hover:border-transparent transition-all"><Facebook size={20} md:size={24} /></a>
+                            <a href={data.social.tiktok} target="_blank" rel="noreferrer" className="w-12 h-12 md:w-16 md:h-16 border border-white/20 flex items-center justify-center hover:bg-white hover:text-black hover:border-transparent transition-all"><TikTokIcon className="text-xl md:text-2xl" /></a>
                        </div>
                        {isAdmin && (
-                           <div className="mt-4 flex flex-col gap-2 w-full md:w-auto">
-                               <input value={data.social.facebook} onChange={(e) => updateSocial('facebook', e.target.value)} className="bg-transparent border border-white/10 p-1 text-xs text-gray-500 w-full" placeholder="Facebook URL" />
-                               <input value={data.social.tiktok} onChange={(e) => updateSocial('tiktok', e.target.value)} className="bg-transparent border border-white/10 p-1 text-xs text-gray-500 w-full" placeholder="TikTok URL" />
+                           <div className="mt-4 flex flex-col gap-2 w-full md:w-64">
+                               <input value={data.social.facebook} onChange={(e) => updateSocial('facebook', e.target.value)} className="bg-transparent border border-white/10 p-1 text-[10px] text-gray-500 w-full" placeholder="Facebook URL" />
+                               <input value={data.social.tiktok} onChange={(e) => updateSocial('tiktok', e.target.value)} className="bg-transparent border border-white/10 p-1 text-[10px] text-gray-500 w-full" placeholder="TikTok URL" />
                            </div>
                        )}
                   </div>
              </div>
-             <div className="mt-20 text-center text-gray-600 text-sm font-light uppercase tracking-widest">© {new Date().getFullYear()} Tran Thien Quy Portfolio</div>
+             <div className="mt-12 md:mt-20 text-center text-gray-600 text-[8px] md:text-sm font-light uppercase tracking-widest">© {new Date().getFullYear()} Tran Thien Quy Portfolio</div>
         </section>
       </div>
     </div>
