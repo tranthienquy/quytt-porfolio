@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
   <head>
@@ -11,7 +12,21 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Be+Vietnam+Pro:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200&family=Playwrite+CZ:wght@100..400&display=swap" rel="stylesheet">
     <style>
+      /* Khai báo Font SVN-Gratelos Display */
+      @font-face {
+        font-family: 'SVN-Gratelos Display';
+        /* Lưu ý: Bạn nên thay link này bằng link CDN thực tế của bạn hoặc file trong project */
+        src: url('https://cdn.jsdelivr.net/gh/font-source/svn-gratelos-display@master/SVN-Gratelos%20Display.woff2') format('woff2'),
+             local('SVN-Gratelos Display');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+
       /* Custom Font Classes */
+      .font-gratelos {
+        font-family: 'SVN-Gratelos Display', sans-serif;
+      }
       .font-heading {
         font-family: 'Playwrite CZ', cursive;
       }

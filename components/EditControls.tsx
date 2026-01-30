@@ -263,9 +263,10 @@ const StyleEditor: React.FC<{
                     className="bg-black border border-white/10 text-xs p-2 rounded w-full text-white focus:border-blue-500 outline-none"
                 >
                     <option value="">Mặc định (Inherit)</option>
-                    <option value="'Inter', sans-serif">Inter (Modern)</option>
-                    <option value="'Playwrite CZ', cursive">Playwrite CZ (Script)</option>
-                    <option value="'Be Vietnam Pro', sans-serif">Be Vietnam Pro (Clean)</option>
+                    <option value="'SVN-Gratelos Display', sans-serif">SVN-Gratelos Display (Nghệ thuật)</option>
+                    <option value="'Inter', sans-serif">Inter (Hiện đại)</option>
+                    <option value="'Playwrite CZ', cursive">Playwrite CZ (Viết tay)</option>
+                    <option value="'Be Vietnam Pro', sans-serif">Be Vietnam Pro (Tối giản)</option>
                 </select>
             </div>
 
